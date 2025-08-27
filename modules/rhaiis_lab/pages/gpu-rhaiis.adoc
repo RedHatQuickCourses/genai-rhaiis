@@ -3,9 +3,9 @@
 [#introduction]
 == Introduction
 
-Successfully deploying a Large Language Model is only half the battle. To build a cost-effective and performant AI platform, you must accurately match the model's requirements to the available hardware. Simply throwing oversized, expensive GPUs at every problem is a wasteful and ineffective strategy that leads to high costs and underutilized resources.
+Successfully deploying a large language model (LLM) is only half the battle. To build a cost-effective and performant AI platform, you must accurately match the model's requirements to the available hardware. Simply throwing oversized, expensive GPUs at every problem is a wasteful and ineffective strategy that leads to high costs and underutilized resources.
 
-This module equips you with the fundamental knowledge and tools to analyze an LLM's requirements and make informed decisions about the necessary GPU infrastructure. You will learn how to estimate the GPU memory needed for a model including its KV Cache. Understand the impact of quantization, and use sizing tools to plan for future deployments.
+This module equips you with the fundamental knowledge and tools to analyze an LLM's requirements and make informed decisions about the necessary GPU infrastructure. You will learn how to estimate the GPU memory needed for a model, (including its KV Cache),understand the impact of quantization, and use sizing tools to plan for future deployments.
 
 image::intro_gpu_size.gif[.Objectives, 600]
 
@@ -14,7 +14,7 @@ image::intro_gpu_size.gif[.Objectives, 600]
 
 The Platform Engineering team at "InnovateForward Corp" is getting requests to deploy a variety of new models. The business wants to know: "What hardware do we need to run the new 70-billion-parameter model?" and "Can we run this smaller, optimized model on our existing A10G GPUs to save costs?"
 
-To answer these questions confidently, the team needs to move beyond guesswork. They must learn how to calculate the video RAM (vRAM) footprint of a given model, including its parameters and the KV Cache. Mastering these calculations will enable them to provide accurate hardware recommendations, optimize resource utilization, and justify infrastructure costs to leadership.
+To answer these questions confidently, the team needs to move beyond guesswork. They must learn how to calculate the video RAM (vRAM) footprint of a given model, including its parameters and the KV Cache. Mastering these calculations will enable the team to provide accurate hardware recommendations, optimize resource utilization, and justify infrastructure costs to leadership.
 
 [#understanding-vram]
 ==  The True Cost Blueprint
@@ -51,7 +51,7 @@ Calculation: (((8 * 4) / (32 / 16)) * 1.2) / = ~19 Gi
 ****
 *Quantization*
 
-While not directly part of the sizing calculation, Quantization is a technique used to reduce the size and improve the performance of an LLM by converting its weights to a lower-precision data type. While many models default to FP16 (16 bits), it's common to quantize them to INT8 (8 bits) or even INT4 (4 bits) to significantly reduce their memory footprint. *Quantization is the most direct way to reduce the baseline memory cost.*
+While not directly part of the sizing calculation, quantization is a technique used to reduce the size and improve the performance of an LLM by converting its weights to a lower-precision data type. While many models default to FP16 (16 bits), it's common to quantize them to INT8 (8 bits), or even INT4 (4 bits), to significantly reduce their memory footprint. *Quantization is the most direct way to reduce the baseline memory cost.*
 
 .Estimated vRAM for Model Weights by Precision
 [options="header"]
@@ -80,7 +80,7 @@ Impact: For applications with long context windows (e.g., document summarization
 
 []
 ****
-For *ibm-granite/granite-3.3-8b-instruct model*, the KV Cache requires about 0.15625 MB per token. With a maximum context length of 131,072 tokens, this results in a KV Cache requirement of approximately 20 Gi.
+For the *ibm-granite/granite-3.3-8b-instruct model*, the KV Cache requires about 0.15625 MB per token. With a maximum context length of 131,072 tokens, this results in a KV Cache requirement of approximately 20 Gi.
 ****
 
 === 3. CUDA & System Overhead
@@ -94,7 +94,7 @@ These are the intermediate values calculated during the model's forward pass. Wh
 [#real-world-equation]
 == The Real-World vRAM Equation
 
-A practical formula for estimating your total memory requirement looks like this:
+A practical formula for estimating total memory requirement looks like this:
 
 [source,text]
 Total vRAM Needed ≈ (VRAM for Model Weights & Overhead) + (VRAM for Max KV Cache)
@@ -111,14 +111,14 @@ Golden Rule: Always profile your specific use case with realistic batch sizes an
 ****
 *Exercise: KV Cache Estimation*
 
-An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the *ibm-granite/granite-3.3-8b-instruct model* requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device? ( using 0.15625 MB per token, 95% GPU usage )
+An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the *ibm-granite/granite-3.3-8b-instruct model* requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (using 0.15625 MB per token, 95% GPU usage)?
 ****
 
 
 
 
 [#tensor-parallelism]
-== When Your Model is Too Big for One GPU
+== When Your Model Is Too Big for One GPU
 
 This is where GPU aggregation strategies become essential. The first and most common strategy for this scenario is Tensor Parallelism.
 
@@ -127,7 +127,7 @@ This is where GPU aggregation strategies become essential. The first and most co
 
 Tensor Parallelism solves the memory problem by splitting a model's layers horizontally across multiple GPUs within a single server.
 
-In technical terms, each GPU holds a "shard" or a slice of the model's weight matrices. They process their portion of the data in parallel and then use a high-speed interconnect to exchange the results, a process known as an all-reduce operation.
+In technical terms, each GPU holds a "shard", or a slice of the model's weight matrices. They process their portion of the data in parallel and then use a high-speed interconnect to exchange the results, a process known as an all-reduce operation.
 
 
 === When to Use Tensor Parallelism
@@ -161,7 +161,7 @@ python -m vllm.entrypoints.api_server
 
 ==== Python Code Configuration
 
-When using vLLM within your Python application, set the tensor_parallel_size in the EngineArgs.
+When using vLLM within a Python application, set the tensor_parallel_size in the EngineArgs.
 
 [source,python]
 from vllm import EngineArgs, LLMEngine
