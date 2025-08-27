@@ -105,7 +105,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Available as a standalone product and included in Red Hat OpenShift AI and Red Hat Enterprise Linux AI. AI inference server provides a powerful and flexible solution for deploying high-performance large language models across any hybrid cloud environment.</p>
+<p>Available as a standalone product and included in Red Hat OpenShift AI and Red Hat Enterprise Linux AI. AI Inference Server provides a powerful and flexible solution for deploying high-performance large language models (LLMS) across any hybrid cloud environment.</p>
 </div>
 <div class="paragraph">
 <p>RHAIIS provides a hardened, supported distribution of the <strong>vLLM</strong> software via pre-packaged containers, depending on GPU type.</p>
@@ -129,10 +129,10 @@
 <p><strong>PagedAttention</strong>: This technique optimizes GPU memory management by virtualizing the key-value (KV) cache for each request. It addresses memory wastage and lowers costs by consuming less memory.</p>
 </li>
 <li>
-<p><strong>Continuous Batching</strong>: It processes requests as they arrive instead of waiting for a full batch to be accumulated, reducing latency and increasing throughput.</p>
+<p><strong>Continuous Batching</strong>: RHAIIS processes requests as they arrive instead of waiting for a full batch to be accumulated, reducing latency and increasing throughput.</p>
 </li>
 <li>
-<p><strong>Tensor Parallelism (TP)</strong>: This feature distributes LLM workloads across multiple GPUs, within a single node, to reduce latency and increase computational throughput. You can configure this using the <code>--tensor-parallel-size</code> argument.</p>
+<p><strong>Tensor Parallelism (TP)</strong>: This feature distributes LLM workloads across multiple GPUs, within a single node, to reduce latency and increase computational throughput. You can configure this by using the <code>--tensor-parallel-size</code> argument.</p>
 </li>
 <li>
 <p><strong>Expert Parallelism (EP)</strong>: RHAIIS includes specialized optimizations for efficiently handling Mixture of Experts (MoE) model architectures.</p>
@@ -142,7 +142,7 @@
 <div class="sect2">
 <h3 id="_model_optimization_and_compression"><a class="anchor" href="#_model_optimization_and_compression"></a>Model Optimization and Compression</h3>
 <div class="paragraph">
-<p>RHAIIS integrates the <strong>LLM Compressor</strong> library, a Developer Preview feature that provides a unified framework for optimizing and compressing large language models before inferencing.</p>
+<p>RHAIIS integrates the <strong>LLM Compressor</strong> library, a Developer Preview feature that provides a unified framework for optimizing and compressing (LLMs) before inferencing.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -170,7 +170,7 @@ For RHAIIS 3.2, LLM Compressor is a Developer Preview feature and is not include
 <div class="sect2">
 <h3 id="_deployment_portability_and_multi_accelerator_support"><a class="anchor" href="#_deployment_portability_and_multi_accelerator_support"></a>Deployment Portability and Multi-Accelerator Support</h3>
 <div class="paragraph">
-<p>RHAIIS is delivered as a container image downloaded from Red Hat Registry, which enables deployment flexibility and  across various connected environments.</p>
+<p>RHAIIS is delivered as a container image downloaded from Red Hat Registry, which enables deployment flexibility across various connected environments.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Supported Deployment Environments</caption>
