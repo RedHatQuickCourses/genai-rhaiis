@@ -44,30 +44,30 @@ Your lab environment has been preconfigured with the following:
 
 == Setting Up Your RHAIIS Lab Environment
 
-A dedicated lab environment for this training is currently in development. In the meantime, you can use the same environment available on the Demo Platform, https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod/rhdp.rhaiis-on-rhel.prod&utm_source=webapp&utm_medium=share-link[*Base Red Hat AI Inference Server (RHAIIS)*, window=blank] - which is pre-configured with the Red Hat AI Inference Server (RHAIIS).
+A dedicated lab environment for this training is currently in development. In the meantime, you can use the same environment available on the Demo Platform, https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod/rhdp.rhaiis-on-rhel.prod&utm_source=webapp&utm_medium=share-link[*Base Red Hat AI Inference Serve(RHAIIS)*, window=blank] - which is preconfigured with, RHAIIS.
 
-This environment includes some pre-configured bonus content:
+This environment includes some preconfigured bonus content:
 
- * A bonus lab that shows you how to connect to the AI model using Python
+ * A bonus lab that shows you how to connect to the AI model by using Python
 
- * An Qwen2.5 model running on RHAIIS as a system service. This model starts automatically when the system boots.
+ * A Qwen2.5 model running on RHAIIS as a system service. This model starts automatically when the system boots.
 
-Once you have completed the initial exercises, you can stop this service to free up the environment for the this lab's main activities. To stop the service, simply run the following command:
+Once you have completed the initial exercises, you can stop this service to free up the environment for the lab's main activities. To stop the service, run the following command:
 
 [source,bash]
 ----
 sudo systemctl stop rhaiis.service
 ----
 
-== Interactive Experiences - Arcades
+== Interactive Experiences (Arcades)
 
-These embedded interactive experiences are woven throughout the training materials. At times they can malfunction when run from a small window, they work best in full screen.
+These embedded interactive experiences are woven throughout the training materials. At times, they can malfunction when run from a small window; they work best in full screen.
 
  * There is a navigation bar across the top.
- ** use the diagonal arrows at the top right to expand the window. 
- ** use the arrows at the top left to navigate forward or backwards.
- ** in the center of the screen you can restart the Arcade.
- ** the lower section of the screen show video progress or slide progression steps.
+ ** Use the diagonal arrows at the top right to expand the window. 
+ ** Use the arrows at the top left to navigate forward or backward.
+ ** Go to center of the screen, to restart the Arcade.
+ ** To view video progrss or slide progression steps, look to the lower section of the screen
 
 ++++
 <iframe 
