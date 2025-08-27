@@ -177,9 +177,9 @@ podman run --rm -it --name rhaiis-server \
 
 Once the server is running, check your `nvidia-smi`, nvtop watch windows. You should see a noticeable decrease in VRAM usage. 
 
-In reality,  what happens in this case is that the inference engine does limit the models max context lgenth to 80K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting. 
+In reality,  what happens in this case is that the inference engine does limit the model's max context length to 80K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting. 
 
-Let's reduce this memory setting next to see how this effects our GPU memory consumption. 
+Let's reduce this memory setting next to see how this affects GPU memory consumption. 
 
 === Fine-Tuning GPU Memory Utilization
 
@@ -250,22 +250,22 @@ You have now successfully deployed and tested two different validated models, de
 '''
 
 
-== 6. Trouble Shooting the Larger Model
+== 6. Troubleshooting the Larger Model
 
 ====
 
-If you deployed your lab using the suggested environment, it's highly likely the larger Granite-8B model just crashed during loading. If you were monitoring with nvtop, you would have seen the GPU usage drop to zero.
+If you deployed your lab using the suggested environment, it's highly likely the larger Granite-8B model crashed during loading. If you were monitoring with nvtop, you would have seen the GPU usage drop to zero.
 
-This was expected. Earlier in the lab guide, you were asked to calculate the context length for the Granite 8B model. Let's revisit that information...
+This was expected. Earlier in the lab guide, you were asked to calculate the context length for the Granite 8B model. Let's revisit that information.
 
 [NOTE]
 ****
 *Exercise: KV Cache Estimation*
 
-An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device? ( using 0.15625 MB per token, 95% GPU usage )
+An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (using 0.15625 MB per token, 95% GPU usage)?
 ****
 
-*You will need to apply this answer as a argument / setting in order to launch the Granite-3.1-8B model successfully.*
+*You will need to apply this answer as an argument / setting in order to launch the Granite-3.1-8B model successfully.*
 
 
 [TIP]
@@ -273,25 +273,25 @@ Start small and during a successful launch, the engine will display the max toke
 
 ====
 
-== 7. Wrapping up this Experience
+== 7. Wrapping up This Experience
 
-I know, I know you left you hanging on this last lab exercise, we'll add an arcade that shows the answer soon, until then everything you need is in this course.
+I know, I know, we left you hanging on this last lab exercise. We'll add an Arcade that shows the answer soon, Until then, everything you need is in this course.
 
 The key points in this lab were:
 
-Gain hands-on experience with the deployment of Red Hat AI Inference Server. 
+ . Gain hands-on experience with the deployment of Red Hat AI Inference Server. 
 
-You learned how to calculate a model GPU requirements, deploy a model, test its functionality, monitor its resource consumption, and tune its performance based on available VRAM. 
+ . How to calculate a model GPU requirements, deploy a model, test its functionality, monitor its resource consumption, and tune its performance based on available VRAM. 
 
 
 == 8. Lab Cleanup
 
-To stop the services and clean up your environment, simply stop the running container.
+To stop the services and clean up your environment, stop the running container.
 
 . In the terminal where RHAIIS is running, press `Ctrl+C`.
 .. The `--rm` flag used in the `podman run` command ensures the container is automatically removed upon exit.
-. In the terminal where nvtop nvidia-smi is running, press `Ctrl+C`.
- .Delete the services on the Demo Platform. 
+ * In the terminal where nvtop nvidia-smi is running, press `Ctrl+C`
+ * Delete the services on the Demo Platform. 
 
 '''
 
