@@ -1,6 +1,6 @@
 site:
   title: Red Hat AI Inference Server (RHAIIS)
-  start_page: REPLACEREPONAME::index.adoc
+  start_page: genai-rhaiis::index.adoc
 
 content:
   sources:
