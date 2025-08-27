@@ -32,7 +32,7 @@ sudo podman run --rm --device nvidia.com/gpu=all \
 image::nvidia_smi.png[Nvidia GPU Status]
 You should see an output similar to the one you'd see if you ran `nvidia-smi` on the host, showing your GPU model, memory usage, and driver version.
 
-== Deploying Your First Model
+== Deploy Your First Model
 
 ===  1. Create a Cache Directory
 
@@ -127,7 +127,7 @@ Feel free to change the prompt and try a few different queries to experiment wit
 
 '''
 
-== 4. Monitoring and Tuning VRAM Usage
+== 4. Monitor and Tuning VRAM Usage
 
 Understanding and managing GPU memory is the most critical skill for serving LLMs efficiently. Now that we validated it's working, let's see how much VRAM our model is using and how to tune it.
 
@@ -209,7 +209,7 @@ podman run --rm -it --name rhaiis-server \
 
 '''
 
-== 5. Deploying an Alternative Model
+== 5. Deploy an Alternative Model
 
 Switching models with RHAIIS is simple. Let's deploy the `granite-3.1-8b-instruct` model.
 
@@ -250,7 +250,7 @@ You have now successfully deployed and tested two different validated models, de
 '''
 
 
-== 6. Troubleshooting the Larger Model
+== 6. Troubleshoot the Larger Model
 
 ====
 
@@ -273,7 +273,7 @@ Start small and during a successful launch, the engine will display the max toke
 
 ====
 
-== 7. Wrapping up This Experience
+== 7. Wrap up This Experience
 
 I know, I know, we left you hanging on this last lab exercise. We'll add an Arcade that shows the answer soon, Until then, everything you need is in this course.
 
