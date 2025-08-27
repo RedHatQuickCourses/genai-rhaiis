@@ -1,6 +1,6 @@
 = **Red Hat AI Inference Server (RHAIIS)**
 
-Available as a standalone product and included in Red Hat OpenShift AI and Red Hat Enterprise Linux AI. AI inference server provides a powerful and flexible solution for deploying high-performance large language models across any hybrid cloud environment.
+Available as a standalone product and included in Red Hat OpenShift AI and Red Hat Enterprise Linux AI. AI Inference Server provides a powerful and flexible solution for deploying high-performance large language models (LLMS) across any hybrid cloud environment.
 
 RHAIIS provides a hardened, supported distribution of the **vLLM** software via pre-packaged containers, depending on GPU type. 
 
@@ -11,15 +11,15 @@ image::rhaiis_containers.png[.RHAIIS Catalog]
 At its heart, RHAIIS is built on the vLLM serving engine. The vLLM open-source project is renowned for its high-throughput and memory-efficient performance, achieved through innovative techniques like PagedAttention and continuous batching.
 
 * **PagedAttention**: This technique optimizes GPU memory management by virtualizing the key-value (KV) cache for each request. It addresses memory wastage and lowers costs by consuming less memory.
-* **Continuous Batching**: It processes requests as they arrive instead of waiting for a full batch to be accumulated, reducing latency and increasing throughput.
-* **Tensor Parallelism (TP)**: This feature distributes LLM workloads across multiple GPUs, within a single node, to reduce latency and increase computational throughput. You can configure this using the `--tensor-parallel-size` argument.
+* **Continuous Batching**: RHAIIS processes requests as they arrive instead of waiting for a full batch to be accumulated, reducing latency and increasing throughput.
+* **Tensor Parallelism (TP)**: This feature distributes LLM workloads across multiple GPUs, within a single node, to reduce latency and increase computational throughput. You can configure this by using the `--tensor-parallel-size` argument.
 // * **Pipeline Parallelism (PP)**: This stages sequential groups of model layers across different GPUs or nodes, which is crucial for fitting models that are too large for a single multi-GPU node.
 * **Expert Parallelism (EP)**: RHAIIS includes specialized optimizations for efficiently handling Mixture of Experts (MoE) model architectures.
 // * **Data Parallelism (DP)**: This routes individual requests to different vLLM engines.
 
 === Model Optimization and Compression
 
-RHAIIS integrates the **LLM Compressor** library, a Developer Preview feature that provides a unified framework for optimizing and compressing large language models before inferencing.
+RHAIIS integrates the **LLM Compressor** library, a Developer Preview feature that provides a unified framework for optimizing and compressing (LLMs) before inferencing.
 
 * **Quantization**: This technique converts model weights and activations to lower-bit formats (such as INT8) to reduce memory usage.
 * **Sparsity**: It sets a portion of model weights to zero, enabling more efficient computation.
@@ -30,7 +30,7 @@ For RHAIIS 3.2, LLM Compressor is a Developer Preview feature and is not include
 
 === Deployment Portability and Multi-Accelerator Support
 
-RHAIIS is delivered as a container image downloaded from Red Hat Registry, which enables deployment flexibility and  across various connected environments.
+RHAIIS is delivered as a container image downloaded from Red Hat Registry, which enables deployment flexibility across various connected environments.
 
 .Supported Deployment Environments
 [cols="2,3,4", options="header"]
