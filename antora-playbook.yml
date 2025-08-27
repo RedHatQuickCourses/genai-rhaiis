@@ -1,5 +1,5 @@
 site:
-  title: FIXME Course Title
+  title: Red Hat AI Inference Server (RHAIIS)
   start_page: REPLACEREPONAME::index.adoc
 
 content:
