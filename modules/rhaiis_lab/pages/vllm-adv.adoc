@@ -87,7 +87,7 @@ To enable agentic capabilities, you must configure the vLLM server to correctly 
 This is the primary switch to turn on the tool calling functionality.
 
 `--tool-call-parser`::
-Specifies the parser required to correctly interpret the tool-calling syntax for a given model family. In this example, we use the `granite` parser. Other models may require different parsers.
+This specifies the parser required to correctly interpret the tool-calling syntax for a given model family. In this example, we use the `granite` parser. Other models may require different parsers.
 
 `--chat-template`::
-Points to the Jinja chat template that formats the prompt in the specific way the model expects for tool-calling interactions. These templates are typically packaged within the vLLM container image.
+This points to the Jinja chat template that formats the prompt in the specific way the model expects for tool-calling interactions. These templates are typically packaged within the vLLM container image.
