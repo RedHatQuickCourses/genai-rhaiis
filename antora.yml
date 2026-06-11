@@ -1,6 +1,6 @@
 name: genai-rhaiis
-title: Model Serving with Red Hat AI Inference Server (RHAIIS)
-version: 3.2
+title: Model Serving with Red Hat AI Inference (RHAII)
+version: 3.4
 nav:
 - modules/ROOT/nav.adoc
 - modules/rhaiis_lab/nav.adoc
