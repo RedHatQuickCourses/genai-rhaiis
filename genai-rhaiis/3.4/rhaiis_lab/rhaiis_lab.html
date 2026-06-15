@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Lab: Model Serving with Red Hat AI Inference Server :: Model Serving with Red Hat AI Inference (RHAII)</title>
     <link rel="prev" href="vllm-adv.html">
-    <link rel="next" href="arcade.html">
+    <link rel="next" href="vllm-api-key.html">
     <meta name="generator" content="Antora 3.1.3">
     <link rel="stylesheet" href="../../../_/css/site.css">
     <script>var uiRootPath = '../../../_'</script>
@@ -40,26 +40,35 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference Server</a>
+    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="rhaiis_overview.html"><strong>Red Hat AI Inference Server (RHAIIS)</strong></a>
+    <a class="nav-link" href="rhaii-overview.html">Red Hat AI Inference</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="gpu-rhaiis.html">GPUs for AI Inference</a>
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RHAII Lab Exercises:</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a>
   </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a>
   </li>
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -92,6 +101,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></li>
+    <li>RHAII Lab Exercises:</li>
     <li><a href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a></li>
   </ul>
 </nav>
@@ -131,6 +141,7 @@
 </li>
 </ol>
 </div>
+<hr>
 <div class="paragraph">
 <p>To make sure everything is working correctly, let&#8217;s run a quick test. This command will start a temporary container and run <code>nvidia-smi</code> inside of it. If it works, you&#8217;ll see details about your GPU. Keep this handy; it&#8217;s a great way to test container access to GPUs across environments.</p>
 </div>
@@ -210,15 +221,16 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaiis-server \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaii-server \
   --device nvidia.com/gpu=all \
   --security-opt=label=disable \
+  --userns=keep-id \
   --shm-size=4GB -p 8000:8000 \
   --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
   --env "HF_HUB_OFFLINE=0" \
   --env=VLLM_NO_USAGE_STATS=1 \
-  -v $HOME/rhaiis-cache:/opt/app-root/src/.cache \
-  registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.0-1754088865-hotfix-1 \
+  -v $HOME/rhaiis-cache:/opt/app-root/src/.cache:Z \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
   --model ibm-granite/granite-3.3-2b-instruct</code></pre>
 </div>
 </div>
@@ -256,7 +268,7 @@
 <div class="sect2">
 <h3 id="_4_verify_the_deployment"><a class="anchor" href="#_4_verify_the_deployment"></a>4. Verify the Deployment</h3>
 <div class="paragraph">
-<p>Once you see logs indicating "gRPC Server started on <a href="http://0.0.0.0:8033"" class="bare">http://0.0.0.0:8033"</a>, the server is ready.</p>
+<p>Once you see logs indicating "Starting vLLM server on <a href="http://0.0.0.0:8000"" class="bare">http://0.0.0.0:8000"</a>, the server is ready.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -318,7 +330,7 @@
 </div>
 </li>
 <li>
-<p>Observe the <strong>Memory-Usage</strong> column. It will show how much VRAM is being used out of the total available (e.g., <code>20052MiB / 23028MiB</code>). This is the baseline VRAM consumption for this model with default settings.</p>
+<p>Observe the <strong>Memory-Usage</strong> column. It will show how much VRAM is being used out of the total available (e.g., <code>21243MiB / 23028MiB</code>). This is the baseline VRAM consumption for this model with default settings.</p>
 </li>
 </ol>
 </div>
@@ -343,24 +355,25 @@
 <p>Relaunch the server, this time adding the <code>--max-model-len</code> argument. Let&#8217;s start with a value of <code>80,000</code>.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaiis-server \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaii-server \
   --device nvidia.com/gpu=all \
   --security-opt=label=disable \
+  --userns=keep-id \
   --shm-size=4GB -p 8000:8000 \
   --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
   --env "HF_HUB_OFFLINE=0" \
   --env=VLLM_NO_USAGE_STATS=1 \
   -v $HOME/rhaiis-cache:/opt/app-root/src/.cache \
-  registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.0-1754088865-hotfix-1 \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
   --model ibm-granite/granite-3.3-2b-instruct \
-  --max-model-len 80000 <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+  --max-model-len=8000 <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Limits the model&#8217;s context length to 80,000 tokens from the max 128,000 tokens.</td>
+<td>Limits the model&#8217;s context length to 8,000 tokens from the max 128,000 tokens.</td>
 </tr>
 </table>
 </div>
@@ -371,7 +384,7 @@
 <p>Once the server is running, check your <code>nvidia-smi</code>, nvtop watch windows. You should see a noticeable decrease in VRAM usage.</p>
 </div>
 <div class="paragraph">
-<p>In reality,  what happens in this case is that the inference engine does limit the model&#8217;s max context length to 80K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting.</p>
+<p>In reality,  what happens in this case is that the inference engine does limit the model&#8217;s max context length to 8K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting.</p>
 </div>
 <div class="paragraph">
 <p>Let&#8217;s reduce this memory setting next to see how this affects GPU memory consumption.</p>
@@ -391,15 +404,16 @@
 <p>Relaunch the server, setting the utilization to 70% to leave more memory for other processes if needed.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaiis-server \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaii-server \
   --device nvidia.com/gpu=all \
   --security-opt=label=disable \
+  --userns=keep-id \
   --shm-size=4GB -p 8000:8000 \
   --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
   --env "HF_HUB_OFFLINE=0" \
   --env=VLLM_NO_USAGE_STATS=1 \
   -v $HOME/rhaiis-cache:/opt/app-root/src/.cache \
-  registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.0-1754088865-hotfix-1 \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
   --model ibm-granite/granite-3.3-2b-instruct \
   --gpu-memory-utilization 0.70 <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
@@ -426,7 +440,7 @@
 <h2 id="_5_deploy_an_alternative_model"><a class="anchor" href="#_5_deploy_an_alternative_model"></a>5. Deploy an Alternative Model</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Switching models with RHAIIS is simple. Let&#8217;s deploy the <code>granite-3.1-8b-instruct</code> model.</p>
+<p>Switching models with RHAIIS is simple. Let&#8217;s deploy the <code>RedHatAI/granite-3.1-8b-instruct</code> model.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -437,23 +451,24 @@
 <p>Run the <code>podman</code> command again, but change the value of the <code>--model</code> argument.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaiis-server \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">podman run --rm -it --name rhaii-server \
   --device nvidia.com/gpu=all \
   --security-opt=label=disable \
+  --userns=keep-id \
   --shm-size=4GB -p 8000:8000 \
   --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
   --env "HF_HUB_OFFLINE=0" \
   --env=VLLM_NO_USAGE_STATS=1 \
-  -v $HOME/rhaiis-cache:/opt/app-root/src/.cache \
-  registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.0-1754088865-hotfix-1 \
-  --model RedHatAI/granite-3.1-8b-instruct <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+  -v $HOME/rhaiis-cache:/opt/app-root/src/.cache:Z \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
+  --model RedHatAI/granite-3.1-8b-instruct</code></pre>
 </div>
 </div>
 <div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>We&#8217;ve switched to the Granite 3.1- 8b model. The server will download it if it&#8217;s not already in the cache.</td>
+<td>We&#8217;ve switched to the Qwen3-8B-FP8-dynamic model. The server will download it if it&#8217;s not already in the cache.</td>
 </tr>
 </table>
 </div>
@@ -575,8 +590,8 @@ Start small and during a successful launch, the engine will display the max toke
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="vllm-adv.html">Advanced vLLM Configuration</a></span>
-  <span class="next"><a href="arcade.html">Arcade Interactive Lab Walkthrough</a></span>
+  <span class="prev"><a href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a></span>
+  <span class="next"><a href="vllm-api-key.html">Secure Models:</a></span>
 </nav>
 </article>
   </div>

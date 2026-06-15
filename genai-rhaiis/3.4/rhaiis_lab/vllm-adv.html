@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Advanced vLLM Configuration :: Model Serving with Red Hat AI Inference (RHAII)</title>
+    <title>Advanced vLLM Configuration: Tuning, Security, and Tool Calling :: Model Serving with Red Hat AI Inference (RHAII)</title>
     <link rel="prev" href="gpu-rhaiis.html">
     <link rel="next" href="rhaiis_lab.html">
     <meta name="generator" content="Antora 3.1.3">
@@ -40,26 +40,35 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference Server</a>
+    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="rhaiis_overview.html"><strong>Red Hat AI Inference Server (RHAIIS)</strong></a>
+    <a class="nav-link" href="rhaii-overview.html">Red Hat AI Inference</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="gpu-rhaiis.html">GPUs for AI Inference</a>
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RHAII Lab Exercises:</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a>
   </li>
-  <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration</a>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -92,7 +101,8 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></li>
-    <li><a href="vllm-adv.html">Advanced vLLM Configuration</a></li>
+    <li>RHAII Lab Exercises:</li>
+    <li><a href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a></li>
   </ul>
 </nav>
 </div>
@@ -101,156 +111,83 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Advanced vLLM Configuration</h1>
-<div class="sect1">
-<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>Introduction</h2>
+<h1 class="page">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</h1>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The vLLM serving runtime provides a robust set of default configurations that work well for many use cases. However, to truly optimize for performance, manage resources in a constrained environment, or enable advanced features like tool calling, you will need to fine-tune the server&#8217;s behavior.</p>
+<p>While the Red Hat AI Inference server provides a robust set of default configurations, truly optimizing performance, operating in constrained hardware environments, and enabling advanced AI capabilities requires fine-tuning the underlying vLLM engine.</p>
 </div>
 <div class="paragraph">
-<p>This module covers some of the more common and impactful configuration arguments you can set for a vLLM server instance. Understanding these options will allow you to precisely control how the model utilizes GPU memory, handles concurrent requests, and scales across multiple devices, enabling you to tailor the serving environment to your specific application needs.</p>
+<p>For a standalone Red Hat Enterprise Linux deployment, engineers must pass specific arguments when launching the container to align the model’s behavior with the business&#8217;s Service Level Objectives (SLOs) and security mandates.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_setting_arguments"><a class="anchor" href="#_setting_arguments"></a>Setting Arguments</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>In OpenShift AI, arguments for a vLLM server can be set directly through the "Model Serving" UI when deploying a single-node instance. Any configuration added through the UI is ultimately represented as a list of strings in the <code>args</code> field of the underlying <code>InferenceService</code> custom resource.</p>
-</div>
-<div class="paragraph">
-<p>For a GitOps-driven approach, you would define these arguments directly in your <code>InferenceService</code> YAML manifest.</p>
-</div>
-<div class="listingblock">
-<div class="title">InferenceService YAML with Custom Arguments</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: my-tuned-model-server
-spec:
-  predictor:
-    model:
-      args:
-        - '--max-model-len=10000'
-        - '--gpu-memory-utilization=0.95'</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>vLLM is a rapidly evolving project. The available options and their behavior can change between versions. When consulting the upstream documentation, always ensure you are viewing the documentation that corresponds to the specific version of vLLM you are using.</p>
-</div>
-<div class="paragraph">
-<p>You can explore all available options for your version by running <code>vllm --help</code> in the container or by referring to the official vLLM documentation: <a href="https://docs.vllm.ai/en/latest/cli/index.html" class="bare">https://docs.vllm.ai/en/latest/cli/index.html</a></p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_common_configuration_options"><a class="anchor" href="#_common_configuration_options"></a>Common Configuration Options</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_model_and_optimization_options"><a class="anchor" href="#_model_and_optimization_options"></a>Model and Optimization Options</h3>
-<div class="paragraph">
-<p>These arguments control how the model is loaded and how it uses GPU memory, directly impacting the trade-off between performance and context length.</p>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>--max-model-len</code></dt>
-<dd>
-<p>This is one of the most common arguments to set. It defines the maximum number of tokens (prompt + completion) that the model can handle in a single sequence. You <strong>must</strong> set this to a lower value if you are deploying a model on a GPU that doesn&#8217;t have enough vRAM to support the model&#8217;s default maximum context length.</p>
-</dd>
-<dt class="hdlist1"><code>--gpu-memory-utilization</code></dt>
-<dd>
-<p>This determines what percentage of the GPU&#8217;s vRAM is allocated to vLLM. It defaults to <code>0.9</code> (90%). You can cautiously increase this value (e.g., to <code>0.95</code>) to make more memory available for the KV Cache, especially on large GPUs like an H100. However, a small amount of memory must be left free for other CUDA processes.</p>
-</dd>
-<dt class="hdlist1"><code>--enable-eager-mode</code></dt>
-<dd>
-<p>This disables the creation of a static CUDA graph, which is normally used to optimize request processing. While this may result in slightly slower response times, it frees up a significant amount of vRAM. This is a useful trade-off when maximizing context length is more important than achieving the absolute lowest latency.</p>
-</dd>
-</dl>
+<hr>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_concurrency_and_resource_limiting"><a class="anchor" href="#_concurrency_and_resource_limiting"></a>Concurrency and Resource Limiting</h3>
+<h3 id="_1_engine_tuning_and_resource_management"><a class="anchor" href="#_1_engine_tuning_and_resource_management"></a>1. Engine Tuning and Resource Management</h3>
 <div class="paragraph">
-<p>These options help you manage server load and prevent individual requests from consuming disproportionate resources.</p>
+<p>These arguments control how the model loads and consumes GPU memory, directly impacting the trade-off between throughput, latency, and context length.</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>--max-num-seqs</code></dt>
-<dd>
-<p>This sets the maximum number of sequences (i.e., concurrent requests) that can be processed at one time. Lowering this value can prevent resource contention and lead to more consistent response times for all users during periods of high traffic.</p>
-</dd>
-<dt class="hdlist1"><code>--limit-mm-per-prompt</code></dt>
-<dd>
-<p>For multi-modal models, this option limits the number of multi-modal inputs (e.g., images) that can be included in a single request, preventing resource exhaustion from excessively large inputs.</p>
-</dd>
-</dl>
+<div class="paragraph">
+<p><strong><code>--gpu-memory-utilization</code>:</strong> This determines the exact fraction of the GPU&#8217;s VRAM allocated to the vLLM engine. It defaults to 0.9 (90%), leaving a small buffer for other CUDA processes. You can cautiously increase this (e.g., to 0.95) on massive GPUs like an H100 to maximize cache, or lower it if you encounter memory errors.</p>
+</div>
+<div class="paragraph">
+<p><strong><code>--max-model-len</code>:</strong> This defines the maximum number of tokens (prompt plus completion) the model handles in a single sequence. If left unspecified, it defaults to the model&#8217;s absolute maximum. <strong>New in 3.4:</strong> Using <code>--max-model-len auto</code> allows the server to automatically calculate and adjust this value to perfectly fit your available hardware, drastically simplifying deployment and preventing out-of-memory crashes.</p>
+</div>
+<div class="paragraph">
+<p><strong><code>--max-num-batched-tokens</code> &amp; <code>--max-num-seqs</code>:</strong> These arguments manage concurrent user traffic. <code>--max-num-seqs</code> sets a hard cap on concurrent requests to prevent resource contention during traffic spikes. <code>--max-num-batched-tokens</code> limits the maximum batch size of tokens processed per step.</p>
+</div>
+<div class="paragraph">
+<p><strong><code>--enable-eager-mode</code>:</strong> By default, vLLM creates a static "CUDA graph" to optimize request processing speed. If you are severely constrained on VRAM, passing this flag disables the CUDA graph. While this results in slightly slower response times, it frees up a significant amount of memory, allowing you to prioritize longer context windows over absolute lowest latency.</p>
+</div>
+<div class="paragraph">
+<p><strong>Deployment Optimization (New in 3.4):</strong> Red Hat AI Inference 3.4 now enables asynchronous scheduling by default. This automatically overlaps engine core scheduling on the CPU with execution on the GPU, improving total throughput without requiring manual tuning.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_parallelism"><a class="anchor" href="#_parallelism"></a>Parallelism</h3>
+<h3 id="_2_parallelism_and_scaling"><a class="anchor" href="#_2_parallelism_and_scaling"></a>2. Parallelism and Scaling</h3>
 <div class="paragraph">
-<p>These arguments are essential for deploying models across multiple GPUs or multiple nodes.</p>
+<p>When a model is too large to fit on a single GPU, you must instruct the vLLM engine to distribute the workload.</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>--tensor-parallel-size</code></dt>
-<dd>
-<p>This specifies the number of GPUs across which the model&#8217;s weights will be sharded using tensor parallelism. This value should typically be equal to the number of GPUs available on a single node.</p>
-</dd>
-<dt class="hdlist1"><code>--pipeline-parallel-size</code></dt>
-<dd>
-<p>This is generally used only in multi-node configurations and corresponds to the number of nodes in the deployment. It enables pipeline parallelism, where different layers of the model are processed on different nodes.</p>
-</dd>
-</dl>
+<div class="paragraph">
+<p><strong><code>--tensor-parallel-size</code>:</strong> This is the most critical argument for single-node deployments. It specifies the exact number of GPUs across which the model’s weights will be sharded (e.g., <code>--tensor-parallel-size 4</code> to distribute the model horizontally across 4 GPUs).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tool_calling"><a class="anchor" href="#_tool_calling"></a>Tool Calling</h3>
+<h3 id="_3_enabling_agentic_capabilities_chat_tool_calling"><a class="anchor" href="#_3_enabling_agentic_capabilities_chat_tool_calling"></a>3. Enabling Agentic Capabilities (Chat &amp; Tool Calling)</h3>
 <div class="paragraph">
-<p>To enable agentic capabilities, you must configure the vLLM server to correctly handle tool calling.</p>
+<p>Tool calling extends a language model&#8217;s business value far beyond basic text generation. It allows the model to act as an agent that can query external databases, call web APIs, and execute real-time calculations.</p>
 </div>
-<div class="listingblock">
-<div class="title">Example Tool Calling Configuration</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">--enable-auto-tool-choice
---tool-call-parser=granite
---chat-template=/app/data/template/tool_chat_template_granite.jinja</code></pre>
+<div class="paragraph">
+<p>To enable tool calling, you must configure three primary arguments:</p>
 </div>
+<div class="paragraph">
+<p><strong><code>--enable-auto-tool-choice</code>:</strong> The primary switch that turns on tool calling functionality.</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>--enable-auto-tool-choice</code></dt>
-<dd>
-<p>This is the primary switch to turn on the tool calling functionality.</p>
-</dd>
-<dt class="hdlist1"><code>--tool-call-parser</code></dt>
-<dd>
-<p>This specifies the parser required to correctly interpret the tool-calling syntax for a given model family. In this example, we use the <code>granite</code> parser. Other models may require different parsers.</p>
-</dd>
-<dt class="hdlist1"><code>--chat-template</code></dt>
-<dd>
-<p>This points to the Jinja chat template that formats the prompt in the specific way the model expects for tool-calling interactions. These templates are typically packaged within the vLLM container image.</p>
-</dd>
-</dl>
+<div class="paragraph">
+<p><strong><code>--tool-call-parser</code>:</strong> Because different models output tool requests in different ways, you must define the parser. Examples include <code>granite</code> (for IBM Granite), <code>mistral</code> (for Mistral 3 models), <code>llama3_json</code> (for Llama 3), or <code>hermes</code> (for Qwen 3).</p>
+</div>
+<div class="paragraph">
+<p><strong><code>--chat-template</code>:</strong> Points to a Jinja template that formats the prompt exactly how the model expects for tool interactions. Some models have built-in templates, but for custom formats, you must mount the template file and specify its path here.</p>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Tool calling is currently a Developer Preview feature in version 3.4, meaning it is excellent for prototyping and validation, but not yet supported for business-critical production workloads.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_4_enterprise_security_configuration"><a class="anchor" href="#_4_enterprise_security_configuration"></a>4. Enterprise Security Configuration</h3>
+<div class="paragraph">
+<p>For standalone deployments, especially those exposed to internal networks, securing the API server is a strict requirement. The vLLM engine provides built-in arguments to protect your endpoints:</p>
+</div>
+<div class="paragraph">
+<p><strong>API Key Authentication (<code>--api-key</code>):</strong> You can require a specific API key for access. Once set, users must pass this key in the HTTP <code>Authorization: Bearer &lt;key&gt;</code> header to interact with the <code>/v1/chat/completions</code> endpoint.</p>
+</div>
+<div class="paragraph">
+<p><strong>In-Transit Encryption (TLS/SSL):</strong> For production-grade security, you should never send plain text over the network. You can enforce TLS encryption using the <code>--ssl-keyfile</code>, <code>--ssl-certfile</code>, and <code>--ssl-ca-certs</code> server arguments.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="gpu-rhaiis.html">GPUs for AI Inference</a></span>
+  <span class="prev"><a href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a></span>
   <span class="next"><a href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a></span>
 </nav>
 </article>

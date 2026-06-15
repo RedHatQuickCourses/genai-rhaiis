@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Security, Observability, and Production Best Practices :: Model Serving with Red Hat AI Inference (RHAII)</title>
+    <link rel="prev" href="rhaiis_lab.html">
+    <link rel="next" href="arcade.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Model Serving with Red Hat AI Inference (RHAII)</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="genai-rhaiis" data-version="3.4">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="rhaii-overview.html">Red Hat AI Inference</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RHAII Lab Exercises:</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Model Serving with Red Hat AI Inference (RHAII)</span>
+    <span class="version">3.4</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">3.4</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></li>
+    <li>RHAII Lab Exercises:</li>
+    <li><a href="vllm-api-key.html">Secure Models:</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Security, Observability, and Production Best Practices</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>While Red Hat AI Inference provides a fast path to serving language models, transitioning from a localized test to a production-ready deployment requires a shift in how we manage the container. Exposing an unauthenticated endpoint poses a severe risk to compute resources and data privacy. Furthermore, a production node must be observable, resilient, and capable of operating in highly regulated network environments.</p>
+</div>
+<div class="paragraph">
+<p>For a standalone RHEL deployment, API security, encryption, and operational best practices must be integrated directly into your deployment strategy.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_1_enforcing_authentication"><a class="anchor" href="#_1_enforcing_authentication"></a>1. Enforcing Authentication</h3>
+<div class="paragraph">
+<p>By default, health monitoring endpoints like <code>/health</code> and <code>/ping</code> do not require authentication, but you can secure inference endpoints (like <code>/v1/chat/completions</code>) using built-in API key features. To secure the standalone server, you must pass the API key requirement when launching the container.</p>
+</div>
+<div class="paragraph">
+<p><strong>Example: Starting the server with API key authentication</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ podman run --rm -it --name rhaii-server \
+  --device nvidia.com/gpu=all \
+  --security-opt=label=disable \
+  --userns=keep-id \
+  --shm-size=4GB -p 8000:8000 \
+  --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+  --env "HF_HUB_OFFLINE=0" \
+  --env=VLLM_NO_USAGE_STATS=1 \
+  -v $HOME/rhaiis-cache:/opt/app-root/src/.cache:Z \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
+  --model RedHatAI/granite-3.1-8b-instruct \
+  --max-model-len 16384 \
+  --api-key my-secret-token</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Key Arguments Used:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>--api-key</code>:</strong> Enforces the requirement for clients to pass the specified key. <strong>Note:</strong> For production, do not hardcode this in scripts; inject it securely via the <code>VLLM_API_KEY</code> environment variable.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Example: Sending an authenticated client request</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer my-secret-token" \
+  -d '{
+    "model": "RedHatAI/granite-3.1-8b-instruct",
+    "messages": [
+      {"role": "user", "content": "What is the IBM Granite series of models?"}
+    ],
+    "max_tokens": 150
+  }' | jq '.choices[0].message.content'</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_verification_and_error_handling"><a class="anchor" href="#_verification_and_error_handling"></a>Verification and Error Handling</h4>
+<div class="paragraph">
+<p>When testing your secure deployment, the server will return standard HTTP status codes to indicate authentication success or failure:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>200 OK:</strong> The request was successful, and the model output is returned.</p>
+</li>
+<li>
+<p><strong>401 Unauthorized:</strong> The request failed because the <code>Authorization</code> header (and the API key) was completely missing.</p>
+</li>
+<li>
+<p><strong>403 Forbidden:</strong> The request failed because the API key provided did not match the key configured on the server].</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_enforcing_tls_encryption"><a class="anchor" href="#_2_enforcing_tls_encryption"></a>2. Enforcing TLS Encryption</h3>
+<div class="paragraph">
+<p>To secure the standalone server comprehensively, you must pass both the API key requirement and the SSL/TLS certificate locations when you launch the container. Before running the container, ensure your SSL certificates (e.g., <code>tls.crt</code> and <code>tls.key</code>) are stored in a local directory on your RHEL server so they can be mounted into the container.</p>
+</div>
+<div class="paragraph">
+<p><strong>Example: Starting the server with native TLS encryption in Podman</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ podman run -d --name rhaii-server \
+  --device nvidia.com/gpu=all \
+  --security-opt=label=disable \
+  --shm-size=4GB -p 8000:8000 \
+  -v ./rhaii-cache:/opt/app-root/src/.cache:Z \
+  -v ./certs:/etc/ssl/certs:Z \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
+  --model RedHatAI/Llama-3.2-1B-Instruct-FP8 \
+  --api-key "&lt;your_api_key&gt;" \
+  --ssl-certfile /etc/ssl/certs/tls.crt \
+  --ssl-keyfile /etc/ssl/certs/tls.key \
+  --enable-ssl-refresh</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>--ssl-certfile</code> &amp; <code>--ssl-keyfile</code>:</strong> Points the engine to the mounted certificate files to enable HTTPS in-transit encryption.</p>
+</li>
+<li>
+<p><strong><code>--enable-ssl-refresh</code>:</strong> An optional but recommended flag that allows the server to automatically refresh the SSL Context if the certificate files are updated on the host, preventing the need to restart the container when certificates rotate.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Once the secure container is running, clients must communicate over <code>https://</code> rather than <code>http://</code> and pass the API key in the HTTP <code>Authorization</code> header.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_observability_exposing_prometheus_metrics"><a class="anchor" href="#_3_observability_exposing_prometheus_metrics"></a>3. Observability: Exposing Prometheus Metrics</h3>
+<div class="paragraph">
+<p>When developers complain that inference is slow, Platform Engineers need hard data to identify the bottleneck. The RHAII platform automatically exposes Prometheus metrics tracking critical inference data, including time-to-first-token (TTFT), time-per-output-token (TPOT), and GPU KV cache utilization.</p>
+</div>
+<div class="paragraph">
+<p>This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.</p>
+</div>
+<div class="paragraph">
+<p>You can easily scrape or view these metrics by querying the server&#8217;s <code>/metrics</code> endpoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl -s http://localhost:8000/metrics | grep vllm</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This output integrates directly into your existing enterprise Grafana dashboards, allowing you to monitor GPU utilization and token throughput in real time without deploying additional third-party agents.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_4_day_2_operations_moving_to_systemd"><a class="anchor" href="#_4_day_2_operations_moving_to_systemd"></a>4. Day-2 Operations: Moving to Systemd</h3>
+<div class="paragraph">
+<p>Throughout this course, we have been running the container interactively using <code>podman run --rm -it</code>. While excellent for rapid validation, a production node must run the inference server as a resilient background process that automatically recovers from failures and survives system reboots.</p>
+</div>
+<div class="paragraph">
+<p>Because we are using RHEL and Podman, we can instantly translate our successful configuration into a native <code>systemd</code> service using Podman&#8217;s built-in tools.</p>
+</div>
+<div class="paragraph">
+<p><strong>Example: Generating a Systemd Service</strong>
+Once your container (<code>rhaii-server</code>) is running exactly how you want it in the background (using the <code>-d</code> flag instead of <code>-it</code>), you can generate the service file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Generate the systemd service file directly from the running container
+$ podman generate systemd --new --name rhaii-server &gt; /etc/systemd/system/container-rhaii-server.service
+
+# Reload systemd and enable the service to start on boot
+$ systemctl daemon-reload
+$ systemctl enable --now container-rhaii-server.service</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your LLM is now a fully integrated, managed infrastructure component.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_5_air_gapped_deployments_the_modelcar_advantage"><a class="anchor" href="#_5_air_gapped_deployments_the_modelcar_advantage"></a>5. Air-Gapped Deployments: The Modelcar Advantage</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Production Reality Check</div>
+Throughout these labs, we utilized a Hugging Face token to pull model weights directly from the public internet. However, you cannot run sensitive corporate data through a public API. In strict enterprise environments, internet-connected downloads are forbidden.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To solve the air-gapped compliance problem, RHAII packages language models into OCI-compliant model containers (known as <strong>modelcars</strong>). This means we can distribute massive LLM weights using the exact same internal container registry infrastructure (like Red Hat Quay or Artifactory) that we already trust for standard application images.</p>
+</div>
+<div class="paragraph">
+<p>Instead of configuring <code>--env "HUGGING_FACE_HUB_TOKEN&#8230;&#8203;"</code>, your production <code>podman run</code> command simply points the <code>--model</code> argument directly to your internal, authenticated registry, ensuring your AI infrastructure remains entirely offline and strictly compliant with industry regulations.</p>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a></span>
+  <span class="next"><a href="arcade.html">Arcade Interactive Lab Walkthrough</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

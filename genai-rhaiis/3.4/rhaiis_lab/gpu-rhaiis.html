@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>GPUs for AI Inference :: Model Serving with Red Hat AI Inference (RHAII)</title>
-    <link rel="prev" href="rhaiis_overview.html">
+    <title>Smart Model Selection and Sizing for Red Hat AI Inference :: Model Serving with Red Hat AI Inference (RHAII)</title>
+    <link rel="prev" href="rhaii-overview.html">
     <link rel="next" href="vllm-adv.html">
     <meta name="generator" content="Antora 3.1.3">
     <link rel="stylesheet" href="../../../_/css/site.css">
@@ -40,26 +40,35 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference Server</a>
+    <a class="nav-link" href="../index.html">Model Serving with Red Hat AI Inference</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="rhaiis_overview.html"><strong>Red Hat AI Inference Server (RHAIIS)</strong></a>
-  </li>
-  <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="gpu-rhaiis.html">GPUs for AI Inference</a>
+    <a class="nav-link" href="rhaii-overview.html">Red Hat AI Inference</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration</a>
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RHAII Lab Exercises:</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -92,7 +101,8 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></li>
-    <li><a href="gpu-rhaiis.html">GPUs for AI Inference</a></li>
+    <li>RHAII Lab Exercises:</li>
+    <li><a href="gpu-rhaiis.html">Smart Model Selection and Sizing for Red Hat AI Inference</a></li>
   </ul>
 </nav>
 </div>
@@ -101,318 +111,252 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">GPUs for AI Inference</h1>
-<div class="sect1">
-<h2 id="introduction"><a class="anchor" href="#introduction"></a>Introduction</h2>
+<h1 class="page">Smart Model Selection and Sizing for Red Hat AI Inference</h1>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Successfully deploying a large language model (LLM) is only half the battle. To build a cost-effective and performant AI platform, you must accurately match the model&#8217;s requirements to the available hardware. Simply throwing oversized, expensive GPUs at every problem is a wasteful and ineffective strategy that leads to high costs and underutilized resources.</p>
+<p>Successfully deploying a generative AI application on a standalone RHEL server is not just about turning the model on; it is about matching the model&#8217;s architecture to the business need and mathematically fitting it to your hardware.</p>
 </div>
 <div class="paragraph">
-<p>This module equips you with the fundamental knowledge and tools to analyze an LLM&#8217;s requirements and make informed decisions about the necessary GPU infrastructure. You will learn how to estimate the GPU memory needed for a model, (including its KV Cache),understand the impact of quantization, and use sizing tools to plan for future deployments.</p>
+<p>Simply throwing oversized, expensive GPUs at every problem is a wasteful strategy that leads to high costs and underutilized resources. To ensure your deployments are smooth, secure, and highly efficient, you must master the mechanics of <strong>model selection</strong>, <strong>VRAM calculation</strong>, and <strong>engine optimization</strong>.</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/intro_gpu_size.gif" alt=".Objectives" width="600">
+<hr>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="lab-story"><a class="anchor" href="#lab-story"></a>Lab Story</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Platform Engineering team at "InnovateForward Corp" is getting requests to deploy a variety of new models. The business wants to know: "What hardware do we need to run the new 70-billion-parameter model?" and "Can we run this smaller, optimized model on our existing A10G GPUs to save costs?"</p>
-</div>
-<div class="paragraph">
-<p>To answer these questions confidently, the team needs to move beyond guesswork. They must learn how to calculate the video RAM (vRAM) footprint of a given model, including its parameters and the KV Cache. Mastering these calculations will enable the team to provide accurate hardware recommendations, optimize resource utilization, and justify infrastructure costs to leadership.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="understanding-vram"><a class="anchor" href="#understanding-vram"></a>The True Cost Blueprint</h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="_1_model_weights_the_baseline_cost"><a class="anchor" href="#_1_model_weights_the_baseline_cost"></a>1. Model Weights (The Baseline Cost)</h3>
+<h3 id="_1_evaluating_model_architecture_and_capabilities"><a class="anchor" href="#_1_evaluating_model_architecture_and_capabilities"></a>1. Evaluating Model Architecture and Capabilities</h3>
 <div class="paragraph">
-<p>This is the memory needed to load the model&#8217;s parameters. It&#8217;s a function of the model size (billions of parameters) and the numerical precision used to store each parameter.</p>
+<p>To prevent wasting expensive GPU resources, platform engineers must first evaluate models based on their architecture and capabilities before deploying them.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Dense vs. Sparse (MoE) Architecture:</strong> A Dense model (like Llama 3) activates every single parameter for every token generated. This provides a highly predictable memory footprint and consistent inference latency, making capacity planning much easier for standalone deployments. A Sparse or Mixture of Experts (MoE) model (like Mixtral) activates only a specific subset of parameters per token. While this requires less compute power per token, it features a massively higher total parameter count and requires more complex deployment strategies.</p>
+</li>
+<li>
+<p><strong>Reasoning vs. Non-Reasoning Capabilities:</strong> "Reasoning" models generate invisible intermediate steps before providing a final answer. This yields high accuracy for complex problem-solving but results in a slower time-to-first-token (TTFT) and higher token costs. "Non-reasoning" models generate direct answers without intermediate steps, resulting in much faster TTFT and highly cost-effective scaling for straightforward tasks like chatbots.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Calculation:
-A formula to estimate the memory for model weights, including overhead:</p>
+<p><strong>Business Value:</strong> Standardizing on the right model architecture guarantees predictable performance and ensures you only pay the compute cost necessary for the business task, maximizing your Hardware ROI.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>M = ((P * 4b) / (32 / Q)) * 1.2</pre>
 </div>
+<div class="sect2">
+<h3 id="_2_the_hardware_math_sizing_the_model"><a class="anchor" href="#_2_the_hardware_math_sizing_the_model"></a>2. The Hardware Math: Sizing the Model</h3>
+<div class="paragraph">
+<p>Inference fails for one primary reason: <strong>Out of Memory (OOM)</strong>. A common mistake is looking at a model&#8217;s file size on disk and assuming it will fit within your GPU&#8217;s Video RAM (VRAM). l</p>
+</div>
+<div class="paragraph">
+<p>To size a standalone inference node correctly and avoid the OOM trap, you must calculate the Total VRAM using this equation:</p>
+</div>
+<div class="paragraph">
+<p><strong>Total VRAM} = (\text{Weights} \times 1.2) + \text{KV Cache}</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Part 1: The Static Cost (Model Weights &amp; Overhead):</strong>: This is the baseline tax just to load the model onto the GPU. For standard 16-bit models (FP16 or BF16), each parameter requires roughly 2 bytes of VRAM. For example, an 8-billion parameter model needs 16 GB of VRAM for the weights alone, plus about 20% overhead for CUDA kernels and system libraries, bringing the static footprint to ~19.2 GB.</p>
+</li>
+<li>
+<p><strong>Part 2: The Dynamic Cost (KV Cache):</strong> The Key-Value (KV) Cache stores the conversational context and is the most volatile consumer of vRAM memory. Its size grows dynamically based on the context length (how much history the model remembers) and the batch size (how many concurrent users we serve).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>The OOM Trap:</strong> Let&#8217;s say you deploy a Granite-8B model that advertises a 128k maximum context window. If you deploy it with default settings, the engine will try to reserve up to ~20 GB of VRAM just for the KV cache. Add that to the 19.2 GB static footprint, this will instantly crash a 24GB NVIDIA A10G GPU.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_smoothing_the_sizing_decisions_new_in_3_4"><a class="anchor" href="#_3_smoothing_the_sizing_decisions_new_in_3_4"></a>3. Smoothing the Sizing Decisions (New in 3.4)</h3>
+<div class="paragraph">
+<p>Historically, engineers had to sit down and manually calculate the `--max-model-len argument to limit the KV Cache footprint and stop the server from crashing.</p>
+</div>
+<div class="paragraph">
+<p>With <strong>Red Hat AI Inference 3.4</strong>, this process is vastly simplified with the introduction of the <code>--max-model-len auto</code> feature. Instead of forcing you to do the exact KV cache math by hand, passing this argument tells the server to automatically calculate and adjust the model&#8217;s maximum context length to fit perfectly within the available leftover GPU memory.</p>
+</div>
+<div class="paragraph">
+<p>With Red Hat AI Inference 3.4, this process is vastly simplified. We now have the --max-model-len auto feature. Instead of doing exact KV cache math by hand, passing this argument tells the server to automatically calculate and adjust the model&#8217;s maximum context length so it fits perfectly within the available leftover GPU memory.</p>
+</div>
+<div class="paragraph">
+<p><strong>Business Value:</strong> Automatic context sizing acts as a safety net that smooths out deployment friction. It prevents frustrating Out-of-Memory crashes during launches and ensures that the server automatically maximizes 100% of the available VRAM without manual guesswork.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_4_maximizing_efficiency_for_massive_models"><a class="anchor" href="#_4_maximizing_efficiency_for_massive_models"></a>4. Maximizing Efficiency for Massive Models</h3>
+<div class="paragraph">
+<p>When a business requires a massive model (e.g., a 70B parameter model requiring ~140GB of VRAM) that cannot physically fit on a single GPU, Red Hat AI Inference provides powerful aggregation and compression strategies.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tensor Parallelism:</strong> If the model is too big for one GPU but fits within the combined memory of all GPUs in your single server, you can use Tensor Parallelism (<code>--tensor-parallel-size</code>). This splits the model&#8217;s layers horizontally, allowing multiple GPUs to process their portion of the data in parallel.</p>
+</li>
+<li>
+<p><strong>Quantization:</strong> You can compress the model&#8217;s precision to radically shrink its memory consumption. Converting standard 16-bit weights to INT8 reduces memory consumption by ~50% with minimal quality degradation. Pushing further to INT4 reduces memory consumption by ~75%. Red Hat AI Inference also supports newer FP8 quantization formats for NVIDIA Hopper and Ada Lovelace GPUs.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Business Value:</strong> Tensor Parallelism and Quantization allow us to serve highly capable, massive language models securely on cheaper hardware, drastically lowering the Total Cost of Ownership (TCO) of our AI infrastructure.</p>
+</div>
+<hr>
+</div>
+<div class="sect1">
+<h2 id="_practical_exercise_evaluating_gpu_architecture_for_ai_inference"><a class="anchor" href="#_practical_exercise_evaluating_gpu_architecture_for_ai_inference"></a>Practical Exercise: Evaluating GPU Architecture for AI Inference</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now that you understand the mechanics of VRAM calculation and compression, let&#8217;s apply these concepts to real-world infrastructure constraints.</p>
+</div>
+<div class="sect3">
+<h4 id="_gpu_instance_feature_matrix"><a class="anchor" href="#_gpu_instance_feature_matrix"></a>GPU Instance Feature Matrix</h4>
+<div class="paragraph">
+<p>Here is the breakdown of the AWS instances available in the lab environment to help you evaluate hardware based on architecture, VRAM, and workload capabilities.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;">
-<col style="width: 80%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Symbol</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">M</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Total GPU memory required for the model weights (in Gi).</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">P</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The number of parameters in the model (e.g., 8 billion).</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4b (bytes)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The size of a full-precision parameter in bytes (FP32).</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Q</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The number of bits used for the model&#8217;s precision type after quantization (e.g., 16 for FP16, 8 for INT8).</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A multiplier representing a ~20% overhead for loading additional components into GPU memory.</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>For example, let&#8217;s calculate the requirement for the <strong>ibm-granite/granite-3.3-8b-instruct model</strong>, which has <strong>8 billion parameters and uses the FP16 data type (16 bits)</strong>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Formula: (((Parameters * 4 bytes) / (32 / Quantization_Bits)) * 1.2)
-Calculation: (((8 * 4) / (32 / 16)) * 1.2) / = ~19 Gi</code></pre>
-</div>
-</div>
-<div class="sidebarblock">
-<div class="content">
-<div class="paragraph">
-<p><strong>Quantization</strong></p>
-</div>
-<div class="paragraph">
-<p>While not directly part of the sizing calculation, quantization is a technique used to reduce the size and improve the performance of an LLM by converting its weights to a lower-precision data type. While many models default to FP16 (16 bits), it&#8217;s common to quantize them to INT8 (8 bits), or even INT4 (4 bits), to significantly reduce their memory footprint. <strong>Quantization is the most direct way to reduce the baseline memory cost.</strong></p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. Estimated vRAM for Model Weights by Precision</caption>
-<colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 37.5%;">
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Model Size (Parameters)</th>
-<th class="tableblock halign-left valign-top">FP16 / BF16 (16-bit)</th>
-<th class="tableblock halign-left valign-top">INT8 (8-bit)</th>
-<th class="tableblock halign-left valign-top">INT4 (4-bit)</th>
+<th class="tableblock halign-left valign-top">Instance Type</th>
+<th class="tableblock halign-left valign-top">GPU Model</th>
+<th class="tableblock halign-left valign-top">Architecture</th>
+<th class="tableblock halign-left valign-top">GPUs</th>
+<th class="tableblock halign-left valign-top">Total VRAM</th>
+<th class="tableblock halign-left valign-top">Key Capabilities &amp; Best Use Case</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~2 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~1 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~0.5 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g4dn.xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA T4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Turing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cost-effective baseline. Best for lightweight, older models or basic ML testing. Does not support modern FP8 quantization.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~6 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~3 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~1.5 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g4dn.12xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA T4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Turing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">64 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Distributed inference on a budget. Useful for practicing Tensor Parallelism across multiple GPUs, though limited by older architecture.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~16 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~8 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~4 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g5.xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA A10G</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ampere</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Battle-tested for mid-sized LLMs and high-fidelity graphics. Strong FP16/INT8 performance, but lacks native FP8 support.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">13 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~26 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~13 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~6.5 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g6.xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA L4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ada Lovelace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exceptional price-to-performance. Natively supports FP8 quantization. Ideal for modern, compressed LLM inference and generative AI tasks.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">34 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~68 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~34 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~17 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g6.12xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA L4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ada Lovelace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">96 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scaled Ada Lovelace power. Perfect for deploying larger models that require Tensor Parallelism across multiple GPUs.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">70 Billion</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~140 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~70 GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~35 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>g6e.xlarge</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA L40S</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ada Lovelace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">48 GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double the VRAM per GPU compared to standard L4. Ideal for serving models with massive context windows on a single GPU without sharding.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_2_the_kv_cache_context_memory"><a class="anchor" href="#_2_the_kv_cache_context_memory"></a>2. The KV Cache (Context Memory)</h3>
-<div class="paragraph">
-<p>The Key-Value (KV) Cache stores attention data for the sequence being processed. For modern LLMs, this is often the largest and most volatile consumer of VRAM. Its size is not fixed; it grows dynamically based on your workload.</p>
-</div>
-<div class="paragraph">
-<p>Key Drivers: The size of the KV Cache is directly proportional to:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Batch Size: The number of requests you process concurrently.</p>
-</li>
-<li>
-<p>Context Length: The number of tokens (input + output) in each request.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Impact: For applications with long context windows (e.g., document summarization) or high batch sizes, the KV Cache can easily consume more VRAM than the model weights themselves.</p>
-</div>
-<div class="sidebarblock">
+<div class="exampleblock">
 <div class="content">
 <div class="paragraph">
-<p>For the <strong>ibm-granite/granite-3.3-8b-instruct model</strong>, the KV Cache requires about 0.15625 MB per token. With a maximum context length of 131,072 tokens, this results in a KV Cache requirement of approximately 20 Gi.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_3_cuda_system_overhead"><a class="anchor" href="#_3_cuda_system_overhead"></a>3. CUDA &amp; System Overhead</h3>
-<div class="paragraph">
-<p>This is the fixed cost of doing business on a GPU. It includes memory consumed by the NVIDIA CUDA kernels, the core PyTorch and vLLM libraries, and various system buffers required to manage the computation.</p>
+<p><strong>Exercise: Right-Sizing the AI Workload</strong></p>
 </div>
 <div class="paragraph">
-<p>Estimated Cost: Budget an additional 10-20% of the model&#8217;s weight VRAM for this overhead (as included in our formula).</p>
+<p><strong>Objective:</strong> Apply VRAM calculation formulas and architecture requirements to select the most cost-effective and capable GPU instance from the lab environment for specific business scenarios.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_4_model_activations"><a class="anchor" href="#_4_model_activations"></a>4. Model Activations</h3>
 <div class="paragraph">
-<p>These are the intermediate values calculated during the model&#8217;s forward pass. While their memory impact is far smaller than the KV Cache, they are a non-zero factor.</p>
+<p><strong>Instructions:</strong> Review the three business scenarios below. Using the GPU Instance Feature Matrix and the <strong>Total VRAM = (Weights × 1.2) + (KV Cache)</strong> equation, select the best instance type for the job and briefly explain your reasoning.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="real-world-equation"><a class="anchor" href="#real-world-equation"></a>The Real-World vRAM Equation</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>A practical formula for estimating total memory requirement looks like this:</p>
+<p><strong>Scenario 1: The Modern Budget Deployment</strong>
+Your team needs to soft-launch an 8-billion parameter model (requiring ~10GB for weights/overhead and ~10GB for the KV Cache). To maximize speed, the engineering team has heavily compressed the model using FP8 quantization. You are tasked with keeping hourly cloud costs as low as possible.</p>
 </div>
-<div class="listingblock">
+<details>
+<summary class="title">Answer Key</summary>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Total vRAM Needed ≈ (VRAM for Model Weights &amp; Overhead) + (VRAM for Max KV Cache)
-Using our 8B model example:
-19.0 Gi (Model &amp; Overhead) + 20 Gi (KV Cache) = ~39 Gi</code></pre>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><strong>Target Instance:</strong> and <strong>Reasoning:</strong></dt>
+<dd>
+<p><code>g6.xlarge</code>. It offers 24GB VRAM (plenty for the 20GB requirement) and is the most cost-effective single-node option that supports the required Ada Lovelace FP8 architecture. The <code>g4dn</code> and <code>g5</code> lack FP8 support.</p>
+</dd>
+</dl>
 </div>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="title">Don&#8217;t Be Fooled by the "Sticker Price"</div>
-A model&#8217;s advertised size is not its final cost in production. A 13B parameter model might list a ~26 GB requirement for its FP16 weights, suggesting it could fit on a 32 GB GPU. However, with a large batch size and long context window for the KV Cache, the actual VRAM requirement can easily exceed 40 GB.
-</td>
-</tr>
-</table>
+</details>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><strong>Scenario 2: The Massive Context Window</strong></dt>
+<dd>
+<p>You are deploying a Retrieval-Augmented Generation (RAG) pipeline for legal document analysis. While the model itself is small (8-billion parameters), the legal documents require a massive context window. You calculate that the KV Cache alone will consume 30 GB of VRAM, bringing the total VRAM requirement to ~40 GB. For latency reasons, the platform architect has forbidden splitting the model across multiple GPUs.</p>
+</dd>
+</dl>
 </div>
-<div class="paragraph">
-<p>Golden Rule: Always profile your specific use case with realistic batch sizes and context lengths. Never select hardware based solely on the VRAM needed for model weights.</p>
-</div>
-<div class="sidebarblock">
+<details>
+<summary class="title">Answer Key</summary>
 <div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><strong>Target Instance:</strong> and <strong>Reasoning:</strong></dt>
+<dd>
+<p><code>g6e.xlarge</code>. With a strict requirement to keep the deployment on a single GPU, the standard <code>g5</code> and <code>g6</code> (24GB) will immediately result in an Out-of-Memory (OOM) error. The <code>g6e.xlarge</code> provides 48GB of VRAM on a single card, accommodating the massive KV cache.</p>
+</dd>
+</dl>
+</div>
+</div>
+</details>
 <div class="paragraph">
-<p><strong>Exercise: KV Cache Estimation</strong></p>
+<p><strong>Scenario 3: Distributed Inference for a Large Model</strong>
+A business unit requires a highly capable 30-billion parameter model for complex reasoning tasks. You calculate the static weight footprint and desired KV cache will require approximately 75 GB of VRAM in total.</p>
 </div>
-<div class="paragraph">
-<p>An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the <strong>ibm-granite/granite-3.3-8b-instruct model</strong> requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (using 0.15625 MB per token, 95% GPU usage)?</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="tensor-parallelism"><a class="anchor" href="#tensor-parallelism"></a>When Your Model Is Too Big for One GPU</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This is where GPU aggregation strategies become essential. The first and most common strategy for this scenario is Tensor Parallelism.</p>
-</div>
-<div class="sect2">
-<h3 id="_tensor_parallelism"><a class="anchor" href="#_tensor_parallelism"></a>Tensor Parallelism</h3>
-<div class="paragraph">
-<p>Tensor Parallelism solves the memory problem by splitting a model&#8217;s layers horizontally across multiple GPUs within a single server.</p>
-</div>
-<div class="paragraph">
-<p>In technical terms, each GPU holds a "shard", or a slice of the model&#8217;s weight matrices. They process their portion of the data in parallel and then use a high-speed interconnect to exchange the results, a process known as an all-reduce operation.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_when_to_use_tensor_parallelism"><a class="anchor" href="#_when_to_use_tensor_parallelism"></a>When to Use Tensor Parallelism</h3>
-<div class="paragraph">
-<p>The rule for using Tensor Parallelism is simple.</p>
-</div>
-<div class="sidebarblock">
+<details>
+<summary class="title">Answer Key</summary>
 <div class="content">
-<div class="paragraph">
-<p>Use Tensor Parallelism when your AI model is too large to fit on a single GPU, but it can fit within the combined memory of all GPUs in a single server.
-It is the ideal solution for scaling up within the bounds of a single multi-GPU node.</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><strong>Target Instance:</strong> and <strong>Reasoning:</strong></dt>
+<dd>
+<p><code>g6.12xlarge</code>. A 75GB requirement exceeds the capacity of any single GPU in the lab. The <code>g6.12xlarge</code> provides 96GB of total VRAM across 4 Ada Lovelace GPUs, allowing you to use Tensor Parallelism (<code>--tensor-parallel-size 4</code>) to distribute the massive model efficiently.</p>
+</dd>
+</dl>
 </div>
 </div>
-</div>
-<hr>
-</div>
-<div class="sect2">
-<h3 id="_vllm_configuration"><a class="anchor" href="#_vllm_configuration"></a>vLLM Configuration</h3>
-<div class="paragraph">
-<p>vLLM makes it simple to enable Tensor Parallelism. You just need to specify how many GPUs you want to use.</p>
-</div>
-<div class="sect3">
-<h4 id="_example_deploying_llama_3_70b_on_a_server_with_2_gpus"><a class="anchor" href="#_example_deploying_llama_3_70b_on_a_server_with_2_gpus"></a>Example: Deploying Llama 3 70B on a server with 2 GPUs</h4>
-<div class="paragraph">
-<p>A 70-billion parameter model like Llama 3 requires ~140GB of memory for its weights, which will not fit on a single 80GB H100 GPU. However, it will fit across two. You would configure vLLM with tensor_parallel_size=2.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_command_line_configuration"><a class="anchor" href="#_command_line_configuration"></a>Command-Line Configuration</h4>
-<div class="paragraph">
-<p>When launching vLLM from the command line, use the --tensor-parallel-size argument.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Launch vLLM using 2 GPUs for Tensor Parallelism
-python -m vllm.entrypoints.api_server
---model "meta-llama/Llama-3-70B-Instruct"
---tensor-parallel-size 2</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_python_code_configuration"><a class="anchor" href="#_python_code_configuration"></a>Python Code Configuration</h4>
-<div class="paragraph">
-<p>When using vLLM within a Python application, set the tensor_parallel_size in the EngineArgs.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import EngineArgs, LLMEngine
-engine_args = EngineArgs( model="meta-llama/Llama-3-70B-Instruct", tensor_parallel_size=2 )</code></pre>
-</div>
-</div>
-</div>
+</details>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="rhaiis_overview.html"><strong>Red Hat AI Inference Server (RHAIIS)</strong></a></span>
-  <span class="next"><a href="vllm-adv.html">Advanced vLLM Configuration</a></span>
+  <span class="prev"><a href="rhaii-overview.html">Red Hat AI Inference</a></span>
+  <span class="next"><a href="vllm-adv.html">Advanced vLLM Configuration: Tuning, Security, and Tool Calling</a></span>
 </nav>
 </article>
   </div>
