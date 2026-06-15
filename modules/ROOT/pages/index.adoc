@@ -1,58 +1,57 @@
-= Model Serving with Red Hat AI Inference Server
+= Model Serving with Red Hat AI Inference
 
-== Overview and Objectives
-
-Welcome to Model Serving with Red Hat AI Inference Server (RHAIIS).
-This is a hands-on lab designed to give you practical experience serving large language models (LLMs) with Red Hat AI Inference Server (RHAIIS). 
-
-By the end of this course, you will be able to:
-
- . Deploy and serve an LLM for inference using two different Granite models (2B and 8B parameters), gaining firsthand experience with a powerful, enterprise-grade platform.
-
- . Optimize GPU resource usage by monitoring memory consumption in real time, understanding how RHAIIS loads model weights and manages the KV Cache. You'll learn how to fine-tune performance by controlling key parameters like max_tokens.
-
- . Troubleshoot and solve deployment challenges, specifically by working through the advanced steps needed to successfully launch a larger 8B model. This will build your skills for real-world scenarios.
-
- . Lay a foundation for further exploration by using the Red Hat AI Model Repository on Hugging Face to serve and experiment with more models after the lab exercises.
-
-While the lab environment initializes, take this opportunity to review the provided lab guide. It covers essential topics like RHAIIS requirements, supported deployments, and advanced vLLM configuration settings, giving you the context you need to succeed.
-
-Ready to get started? Let’s dive into a powerful platform that helps you deploy AI models with flexibility and high performance across any hybrid cloud environment.
+== Welcome to Model Serving with Red Hat AI Inference
 
 
-== Outcomes
+Let's talk about the reality of serving Large Language Models (LLMs) in the enterprise.
 
-Upon completing this lab, you will be able to:
+Under the hood, these models are performing incredibly complex, computationally heavy tasks. But for those of us on the infrastructure and platform teams, deploying and managing them shouldn't require a Ph.D. in hardware engineering. We need to focus on delivering business ROI—cost-effective token generation, strict SLOs, and secure endpoints—not spending our weeks debugging CUDA drivers and infrastructure maintenance.
 
- * Deploy AI Inference server for Huggingface based models using Podman.
- * Verify the model is serving correctly by interacting with its API.
- * Monitor the GPU's video memory (VRAM) usage in real-time.
- * Tune server parameters to control memory consumption and context length.
- * Deploy and test an alternative model to see the platform's flexibility.
- * Determine the max-model-len for a given model.
+That is exactly the problem Red Hat AI Inference (RHAII) solves. By packaging the highly performant vLLM serving engine into a hardened, supported container, RHAII allows us to transform the chaotic process of AI deployment into a predictable, manageable system.
 
-== Environment Prerequisites
+---
 
-Your lab environment has been pre-configured with the following:
+[IMPORTANT]
+====
+**Evolution of Red Hat AI Inference 3.4**
 
-* A Red Hat Enterprise Linux 9.x system with a valid subscription.
-* An attached and configured NVIDIA data center GPU with drivers installed.
-* Podman and the NVIDIA Container Toolkit are pre-installed.
-* Credentials for **Red Hat account** to access `registry.redhat.io`. (Provided for this experience)
-* A **Hugging Face account** with a User Access Token with read permissions. (Provided for this experience)
+If you've been around the Red Hat ecosystem, you might notice a name change. Red Hat AI Inference Server (RHAIIS) has officially been rebranded to Red Hat AI Inference (RHAII).  This change reflects a massive leap in capability. With version 3.4, RHAII introduces Distributed Inference using the Kubernetes-native llm-d framework and Gateway API routing. This allows organizations to build centralized, multi-node Models-as-a-Service (MaaS) platforms on OpenShift.
+
+However, we are keeping things grounded. Before you can run a massive, distributed cluster, you have to master the engine. This course focuses entirely on the core mechanics of single-node, single-GPU deployments on RHEL. The complexities of llm-d operations are out of scope for today and will be covered in a dedicated advanced course.
+====
+
+== Goals and Objectives
 
 
-== Setting Up Your RHAIIS Lab Environment
 
-A dedicated lab environment for this training is currently in development. In the meantime, you can use the same environment available on the Demo Platform, https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod/rhdp.rhaiis-on-rhel.prod&utm_source=webapp&utm_medium=share-link[*Base Red Hat AI Inference Server (RHAIIS)*, window=blank] - which is pre-configured with the Red Hat AI Inference Server (RHAIIS).
+Our goal is to give you a hands-on exploration of model serving using the RHAII 3.4 container image. We aren't just going to run commands; we are going to look at the exact headaches we face in the real world and solve them step-by-step.
 
-This environment includes some pre-configured bonus content:
+Throughout this course, you will learn how to:
 
- * A bonus lab that shows you how to connect to the AI model using Python.
+ * *Survive the Math:* Calculate exact vRAM requirements to successfully fit and run a model on your hardware, eliminating Out-of-Memory (OOM) crashes.  
+ *  *Tune for Efficiency:* Adjust vLLM parameters and manage context windows to maximize performance, hardware utilization, and resource efficiency.  
+ * *Control Access:* Secure your inference endpoints natively to protect corporate IP and pass InfoSec audits.  
+ * *Enable the Business:* Configure Developer Preview tool-calling features to empower developers to build Agentic workflows.
 
- * An Qwen2.5 model running on RHAIIS as a system service. This model starts automatically when the system boots.
 
-Once you have completed the initial exercises, you can stop this service to free up the environment for the this lab's main activities. To stop the service, simply run the following command:
+== Setting Up Your RHAII Lab Environment
+
+WARNING: *Start Your Lab Now!*
+We are using an existing Red Hat Demo Platform lab environment.  Because this environment provisions a dedicated Red Hat Enterprise Linux server backed by a real NVIDIA GPU, it takes approximately 30 minutes to fully boot. Please request your environment before continuing with the rest of the reading. Be sure to follow the built-in lab instructions; they introduce several commands you will use throughout this course, so don't skip the existing lab.
+
+Use this environment available on the Demo Platform: https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod/rhdp.rhaiis-on-rhel.prod&utm_source=webapp&utm_medium=share-link[*Base Red Hat AI Inference Server (RHAIIS)*, window=blank] - which is pre-configured with a running Red Hat AI Inference instance. 
+
+This course uses a showroom environment on the Red Hat Demo Platform. You will have a split-screen view: the embedded lab instructions on the left, and terminal access to your GPU-enabled server on the right.  Your lab environment comes pre-configured with:
+
+ * A Red Hat Enterprise Linux 9.x system with a valid subscription.  
+ * An attached NVIDIA A10G GPU with drivers installed.  
+ * Podman and the NVIDIA Container Toolkit pre-installed.  
+ * Credentials for registry.redhat.io and a Hugging Face User Access Token. 
+ 
+=== Clearing the GPU vRAM
+
+Because GPU memory is a strictly finite resource, two LLMs cannot easily share the same GPU in this configuration. Your lab environment has a small AI service running in the background automatically.  Before we can take control of the server for our own deployments, we must stop the pre-configured service to free up the GPU's memory.  Once your lab is booted, run the following command in your terminal:
+
 
 [source,bash]
 ----
@@ -61,13 +60,15 @@ sudo systemctl stop rhaiis.service
 
 == Interactive Experiences - Arcades
 
-These embedded interactive experiences are woven throughout the training materials. At times they can malfunction when run from a small window, they work best in full screen.
+Embedded interactive experiences (Arcades) are woven throughout the training materials. At times, they can malfunction when run from a small window; they work best in full screen.
 
  * There is a navigation bar across the top.
- ** use the diagonal arrows at the top right to expand the window. 
- ** use the arrows at the top left to navigate forward or backwards.
- ** in the center of the screen you can restart the Arcade.
- ** the lower section of the screen show video progress or slide progression steps.
+ ** Use the diagonal arrows at the top right to expand the window. 
+ ** Use the arrows at the top left to navigate forward or backward.
+ ** In the center of the screen, you can restart the Arcade.
+ ** The lower section of the screen shows video progress or slide progression steps.
+
+Here is an example showing how to request the demo environment and stop the running Inference Service so we can use it for our course labs.
 
 ++++
 <iframe 
@@ -82,4 +83,3 @@ These embedded interactive experiences are woven throughout the training materia
   muted>
 </iframe>
 ++++
-
