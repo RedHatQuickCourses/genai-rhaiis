@@ -257,31 +257,25 @@ curl -X POST http://localhost:8000/v1/completions \
 You have now successfully deployed and tested two different validated models, demonstrating the flexibility of the platform.
 
 '''
-
-
 == 6. Troubleshoot the Larger Model
 
-====
+If you deployed your lab using the suggested environment, your attempt to launch the larger Granite-8B model likely crashed during the loading phase. If you were monitoring the terminal with `nvtop`, you would have seen the GPU usage suddenly drop to zero.
 
-If you deployed your lab using the suggested environment, it's highly likely the larger Granite-8B model crashed during loading. If you were monitoring with nvtop, you would have seen the GPU usage drop to zero.
-
-====
-
-This was expected. Earlier in the lab guide, you were provided with calculations the context length for the Granite 8B model. Let's revisit that information.
+This crash was a fully expected part of the learning process. Earlier in the course, we discussed how to calculate the required memory and context length for the Granite 8B model. Let's revisit that sizing challenge.
 
 [NOTE]
 ****
-*Exercise: KV Cache Estimation*
+*Exercise Review: KV Cache Estimation*
 
-An NVIDIA A10G or L4 GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* requires ~19.0 Gi for its weights and overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (using 0.15625 MB per token, 95% GPU usage)?
+An NVIDIA L4 GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* model requires ~19.0 Gi for its weights and system overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (assuming 0.15625 MB per token and 95% GPU usage)?
 ****
 
-*You will need to apply this answer as an argument / setting in order to launch the Granite-3.1-8B model successfully.*
+Traditionally, you would need to calculate this exact number and apply it as a strict argument (`--max-model-len`) to successfully launch the model. 
 
-Red Hat AI Inference 3.4 introduces *Automatic context sizing*, that smooths out deployment friction. It prevents frustrating Out-of-Memory crashes during launches and ensures that the server automatically maximizes 100% of the available VRAM without manual guesswork.
+However, Red Hat AI Inference 3.4 introduces **automatic context sizing** to eliminate this deployment friction. This feature prevents frustrating Out-of-Memory (OOM) crashes during launch and ensures the server safely maximizes the available vRAM without requiring manual calculations and guesswork.
 
 [%collapsible]
-.Answer Key
+.View the Deployment Solution
 ====
 [source,bash]
 ----
@@ -301,27 +295,21 @@ podman run --rm -it --name rhaii-server \
 ----
 ====
 
+By using the `auto` setting, the inference engine secures the largest possible context window for individual queries. Behind the scenes, PagedAttention and concurrency limits (such as `--max-num-seqs`) work seamlessly together to distribute memory fairly and queue excess traffic during concurrent demand spikes.
 
-== 7. Wrap up This Experience
+---
 
+== 7. Lab Summary and Next Steps
 
-The key points in this lab were:
+Congratulations on completing the core deployment exercises! 
 
- . Gain hands-on experience with the deployment of Red Hat AI Inference Server. 
+The key takeaways from this lab experience were:
+* Gaining practical, hands-on experience deploying the Red Hat AI Inference container (version 3.4.1).
+* Learning how to calculate an AI model's GPU requirements and size your infrastructure.
+* Deploying models, testing API functionality, and monitoring real-time resource consumption.
+* Tuning server performance based on available vRAM to prevent system crashes and optimize output.
 
- . How to calculate a model GPU requirements, deploy a model, test its functionality, monitor its resource consumption, and tune its performance based on available VRAM. 
-
-
-== 8. Lab Cleanup
-
-To stop the services and clean up your environment, stop the running container.
-
-. In the terminal where RHAII is running, press `Ctrl+C`.
-.. The `--rm` flag used in the `podman run` command ensures the container is automatically removed upon exit.
- * In the terminal where nvtop nvidia-smi is running, press `Ctrl+C`
- * Delete the services on the Demo Platform. 
-
-'''
+**Up Next:** Now that we have the fundamentals of serving and sizing under our belt, we will transition from basic deployment to production readiness. In the next section, we will briefly explore the operational side of AI: security, observability, and the use of Modelcars.
 
 
 
