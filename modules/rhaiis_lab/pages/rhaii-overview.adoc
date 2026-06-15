@@ -1,0 +1,45 @@
+= Red Hat AI Inference
+
+Before we start calculating memory requirements and spinning up containers, let's look at the engine we are actually using. If you try to run an open-source LLM directly on bare metal, you are going to spend half your week fighting Python dependencies, CUDA driver mismatches, and memory leaks. 
+
+Red Hat AI Inference (RHAII) is our way out of the infrastructure weeds. It provides a hardened, supported distribution of the open-source vLLM serving engine, packaged neatly into OCI-compliant container images.  Operating as a standalone server, it allows us to rapidly deploy, validate, and serve LLMs on a single-node architecture. It is designed specifically to maximize our token throughput and hardware efficiency, while ensuring we can lock down sensitive AI workloads in isolated or highly regulated environments.
+
+'''
+
+== Core Features, Capabilities, and Business Value
+
+To hit those strict Service Level Objectives (SLOs) and keep our compute costs from exploding, the platform leans on five core capabilities:
+
+=== 1. Engine Optimizations (Stopping Memory Waste).
+
+An untuned model will reserve massive chunks of GPU memory and just sit on it. RHAII utilizes PagedAttention to virtualize the Key-Value (KV) cache for each request, solving memory fragmentation. It also uses Continuous Batching, meaning it processes incoming requests immediately rather than waiting for a full batch to form.  
+
+The Reality Check: This directly increases token throughput, allowing us to serve more users simultaneously without buying more GPUs, driving down our cost-per-token.  
+
+=== 2. Hardware Portability (Breaking Vendor Lock-in)
+We aren't always going to have access to top-tier NVIDIA silicon. Because RHAII is delivered as a portable container, it runs across a massive range of hardware. We can deploy on NVIDIA (Turing to Blackwell), AMD (Instinct accelerators), Intel Gaudi, or even run native CPU inference using Intel Xeon and AMD EPYC processors. 
+
+The Reality Check: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.  
+
+
+=== 3. Enterprise Security (Surviving InfoSec)
+
+You cannot run sensitive corporate data through a public API. RHAII packages language models into OCI-compliant model containers (modelcars), meaning we can distribute them using the exact same container registry infrastructure we already trust.  
+
+The Reality Check: This solves the air-gapped compliance problem. We can serve these models entirely offline in disconnected environments, ensuring we stay strictly compliant with industry regulations.  
+
+=== 4. Model Compression (Shrinking the Footprint)
+Sometimes the business demands a model that physically will not fit on our available hardware. RHAII integrates with the Red Hat AI Model Optimization Toolkit to deploy compressed models. Using Quantization, we can convert massive model weights into lower-precision formats (like INT8 or FP8) to drastically reduce memory usage.
+
+The Reality Check: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.  
+
+=== 5. Observability (Proving Our SLOs)
+
+When the developers complain that "the AI is slow," we need data to push back. The platform automatically exposes Prometheus metrics tracking critical inference data, including time-to-first-token (TTFT), time-per-output-token (TPOT), and GPU KV cache utilization.  
+
+The Reality Check: This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.  
+
+
+== The "Rapid Validation" Journey
+
+Why are we focusing on a single standalone node when everyone is talking about massive Kubernetes clusters? Because deploying a standalone RHAII container is the fastest way to validate a model's capabilities on target hardware. It is the perfect way to perform rapid A/B testing, execute soft launches, and establish a rock-solid hardware baseline before we commit resources to a complex, multi-node architecture. 

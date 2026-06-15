@@ -1,93 +1,49 @@
-= Advanced vLLM Configuration
+= Advanced vLLM Configuration: Tuning, Security, and Tool Calling
 
-[%hardbreaks]
+While the Red Hat AI Inference server provides a robust set of default configurations, truly optimizing performance, operating in constrained hardware environments, and enabling advanced AI capabilities requires fine-tuning the underlying vLLM engine.
 
-== Introduction
+For a standalone Red Hat Enterprise Linux deployment, engineers must pass specific arguments when launching the container to align the model’s behavior with the business's Service Level Objectives (SLOs) and security mandates.
 
-The vLLM serving runtime provides a robust set of default configurations that work well for many use cases. However, to truly optimize for performance, manage resources in a constrained environment, or enable advanced features like tool calling, you will need to fine-tune the server's behavior.
+'''
 
-This module covers some of the more common and impactful configuration arguments you can set for a vLLM server instance. Understanding these options will allow you to precisely control how the model utilizes GPU memory, handles concurrent requests, and scales across multiple devices, enabling you to tailor the serving environment to your specific application needs.
+=== 1. Engine Tuning and Resource Management
 
-== Setting Arguments
+These arguments control how the model loads and consumes GPU memory, directly impacting the trade-off between throughput, latency, and context length.
 
-In OpenShift AI, arguments for a vLLM server can be set directly through the "Model Serving" UI when deploying a single-node instance. Any configuration added through the UI is ultimately represented as a list of strings in the `args` field of the underlying `InferenceService` custom resource.
+*`--gpu-memory-utilization`:* This determines the exact fraction of the GPU's VRAM allocated to the vLLM engine. It defaults to 0.9 (90%), leaving a small buffer for other CUDA processes. You can cautiously increase this (e.g., to 0.95) on massive GPUs like an H100 to maximize cache, or lower it if you encounter memory errors.
 
-For a GitOps-driven approach, you would define these arguments directly in your `InferenceService` YAML manifest.
+*`--max-model-len`:* This defines the maximum number of tokens (prompt plus completion) the model handles in a single sequence. If left unspecified, it defaults to the model's absolute maximum. *New in 3.4:* Using `--max-model-len auto` allows the server to automatically calculate and adjust this value to perfectly fit your available hardware, drastically simplifying deployment and preventing out-of-memory crashes.
 
-.InferenceService YAML with Custom Arguments
-[source,yaml]
-----
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: my-tuned-model-server
-spec:
-  predictor:
-    model:
-      args:
-        - '--max-model-len=10000'
-        - '--gpu-memory-utilization=0.95'
-----
+*`--max-num-batched-tokens` & `--max-num-seqs`:* These arguments manage concurrent user traffic. `--max-num-seqs` sets a hard cap on concurrent requests to prevent resource contention during traffic spikes. `--max-num-batched-tokens` limits the maximum batch size of tokens processed per step.
 
-[IMPORTANT]
-====
-vLLM is a rapidly evolving project. The available options and their behavior can change between versions. When consulting the upstream documentation, always ensure you are viewing the documentation that corresponds to the specific version of vLLM you are using.
+*`--enable-eager-mode`:* By default, vLLM creates a static "CUDA graph" to optimize request processing speed. If you are severely constrained on VRAM, passing this flag disables the CUDA graph. While this results in slightly slower response times, it frees up a significant amount of memory, allowing you to prioritize longer context windows over absolute lowest latency.
 
-You can explore all available options for your version by running `vllm --help` in the container or by referring to the official vLLM documentation: https://docs.vllm.ai/en/latest/cli/index.html
-====
+*Deployment Optimization (New in 3.4):* Red Hat AI Inference 3.4 now enables asynchronous scheduling by default. This automatically overlaps engine core scheduling on the CPU with execution on the GPU, improving total throughput without requiring manual tuning.
 
-== Common Configuration Options
+=== 2. Parallelism and Scaling
 
-=== Model and Optimization Options
+When a model is too large to fit on a single GPU, you must instruct the vLLM engine to distribute the workload.
 
-These arguments control how the model is loaded and how it uses GPU memory, directly impacting the trade-off between performance and context length.
+*`--tensor-parallel-size`:* This is the most critical argument for single-node deployments. It specifies the exact number of GPUs across which the model’s weights will be sharded (e.g., `--tensor-parallel-size 4` to distribute the model horizontally across 4 GPUs).
 
-`--max-model-len`::
-This is one of the most common arguments to set. It defines the maximum number of tokens (prompt + completion) that the model can handle in a single sequence. You *must* set this to a lower value if you are deploying a model on a GPU that doesn't have enough vRAM to support the model's default maximum context length.
+=== 3. Enabling Agentic Capabilities (Chat & Tool Calling)
 
-`--gpu-memory-utilization`::
-This determines what percentage of the GPU's vRAM is allocated to vLLM. It defaults to `0.9` (90%). You can cautiously increase this value (e.g., to `0.95`) to make more memory available for the KV Cache, especially on large GPUs like an H100. However, a small amount of memory must be left free for other CUDA processes.
+Tool calling extends a language model's business value far beyond basic text generation. It allows the model to act as an agent that can query external databases, call web APIs, and execute real-time calculations.
 
-`--enable-eager-mode`::
-This disables the creation of a static CUDA graph, which is normally used to optimize request processing. While this may result in slightly slower response times, it frees up a significant amount of vRAM. This is a useful trade-off when maximizing context length is more important than achieving the absolute lowest latency.
+To enable tool calling, you must configure three primary arguments:
 
-=== Concurrency and Resource Limiting
+*`--enable-auto-tool-choice`:* The primary switch that turns on tool calling functionality.
 
-These options help you manage server load and prevent individual requests from consuming disproportionate resources.
+*`--tool-call-parser`:* Because different models output tool requests in different ways, you must define the parser. Examples include `granite` (for IBM Granite), `mistral` (for Mistral 3 models), `llama3_json` (for Llama 3), or `hermes` (for Qwen 3).
 
-`--max-num-seqs`::
-This sets the maximum number of sequences (i.e., concurrent requests) that can be processed at one time. Lowering this value can prevent resource contention and lead to more consistent response times for all users during periods of high traffic.
+*`--chat-template`:* Points to a Jinja template that formats the prompt exactly how the model expects for tool interactions. Some models have built-in templates, but for custom formats, you must mount the template file and specify its path here.
 
-`--limit-mm-per-prompt`::
-For multi-modal models, this option limits the number of multi-modal inputs (e.g., images) that can be included in a single request, preventing resource exhaustion from excessively large inputs.
+*Note:* Tool calling is currently a Developer Preview feature in version 3.4, meaning it is excellent for prototyping and validation, but not yet supported for business-critical production workloads.
 
-=== Parallelism
+=== 4. Enterprise Security Configuration
 
-These arguments are essential for deploying models across multiple GPUs or multiple nodes.
+For standalone deployments, especially those exposed to internal networks, securing the API server is a strict requirement. The vLLM engine provides built-in arguments to protect your endpoints:
 
-`--tensor-parallel-size`::
-This specifies the number of GPUs across which the model's weights will be sharded using tensor parallelism. This value should typically be equal to the number of GPUs available on a single node.
+*API Key Authentication (`--api-key`):* You can require a specific API key for access. Once set, users must pass this key in the HTTP `Authorization: Bearer <key>` header to interact with the `/v1/chat/completions` endpoint.
 
-`--pipeline-parallel-size`::
-This is generally used only in multi-node configurations and corresponds to the number of nodes in the deployment. It enables pipeline parallelism, where different layers of the model are processed on different nodes.
-
-=== Tool Calling
-
-To enable agentic capabilities, you must configure the vLLM server to correctly handle tool calling.
-
-.Example Tool Calling Configuration
-[source,bash]
-----
---enable-auto-tool-choice
---tool-call-parser=granite
---chat-template=/app/data/template/tool_chat_template_granite.jinja
-----
-
-`--enable-auto-tool-choice`::
-This is the primary switch to turn on the tool calling functionality.
-
-`--tool-call-parser`::
-This specifies the parser required to correctly interpret the tool-calling syntax for a given model family. In this example, we use the `granite` parser. Other models may require different parsers.
-
-`--chat-template`::
-This points to the Jinja chat template that formats the prompt in the specific way the model expects for tool-calling interactions. These templates are typically packaged within the vLLM container image.
+*In-Transit Encryption (TLS/SSL):* For production-grade security, you should never send plain text over the network. You can enforce TLS encryption using the `--ssl-keyfile`, `--ssl-certfile`, and `--ssl-ca-certs` server arguments.
