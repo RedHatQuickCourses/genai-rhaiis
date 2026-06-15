@@ -63,7 +63,7 @@
     <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
   </li>
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+    <a class="nav-link" href="vllm-api-key.html">Security, Observability, and Production Best Practices</a>
   </li>
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
@@ -134,7 +134,7 @@
 <p>An untuned model will reserve massive chunks of GPU memory and just sit on it. RHAII utilizes PagedAttention to virtualize the Key-Value (KV) cache for each request, solving memory fragmentation. It also uses Continuous Batching, meaning it processes incoming requests immediately rather than waiting for a full batch to form.</p>
 </div>
 <div class="paragraph">
-<p>The Reality Check: This directly increases token throughput, allowing us to serve more users simultaneously without buying more GPUs, driving down our cost-per-token.</p>
+<p>Business value: This directly increases token throughput, allowing us to serve more users simultaneously without buying more GPUs, driving down our cost-per-token.</p>
 </div>
 </div>
 <div class="sect2">
@@ -143,7 +143,7 @@
 <p>We aren&#8217;t always going to have access to top-tier NVIDIA silicon. Because RHAII is delivered as a portable container, it runs across a massive range of hardware. We can deploy on NVIDIA (Turing to Blackwell), AMD (Instinct accelerators), Intel Gaudi, or even run native CPU inference using Intel Xeon and AMD EPYC processors.</p>
 </div>
 <div class="paragraph">
-<p>The Reality Check: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.</p>
+<p>Business value: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.</p>
 </div>
 </div>
 <div class="sect2">
@@ -152,7 +152,7 @@
 <p>You cannot run sensitive corporate data through a public API. RHAII packages language models into OCI-compliant model containers (modelcars), meaning we can distribute them using the exact same container registry infrastructure we already trust.</p>
 </div>
 <div class="paragraph">
-<p>The Reality Check: This solves the air-gapped compliance problem. We can serve these models entirely offline in disconnected environments, ensuring we stay strictly compliant with industry regulations.</p>
+<p>Business value: This solves the air-gapped compliance problem. We can serve these models entirely offline in disconnected environments, ensuring we stay strictly compliant with industry regulations.</p>
 </div>
 </div>
 <div class="sect2">
@@ -161,7 +161,7 @@
 <p>Sometimes the business demands a model that physically will not fit on our available hardware. RHAII integrates with the Red Hat AI Model Optimization Toolkit to deploy compressed models. Using Quantization, we can convert massive model weights into lower-precision formats (like INT8 or FP8) to drastically reduce memory usage.</p>
 </div>
 <div class="paragraph">
-<p>The Reality Check: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.</p>
+<p>Business value: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.</p>
 </div>
 </div>
 <div class="sect2">
@@ -170,7 +170,7 @@
 <p>When the developers complain that "the AI is slow," we need data to push back. The platform automatically exposes Prometheus metrics tracking critical inference data, including time-to-first-token (TTFT), time-per-output-token (TPOT), and GPU KV cache utilization.</p>
 </div>
 <div class="paragraph">
-<p>The Reality Check: This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.</p>
+<p>Business value: This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.</p>
 </div>
 </div>
 </div>

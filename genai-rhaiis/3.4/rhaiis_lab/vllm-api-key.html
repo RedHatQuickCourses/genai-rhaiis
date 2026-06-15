@@ -63,7 +63,7 @@
     <a class="nav-link" href="rhaiis_lab.html">Lab: Model Serving with Red Hat AI Inference Server</a>
   </li>
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="vllm-api-key.html">Secure Models:</a>
+    <a class="nav-link" href="vllm-api-key.html">Security, Observability, and Production Best Practices</a>
   </li>
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
@@ -102,7 +102,7 @@
   <ul>
     <li><a href="../index.html">Model Serving with Red Hat AI Inference (RHAII)</a></li>
     <li>RHAII Lab Exercises:</li>
-    <li><a href="vllm-api-key.html">Secure Models:</a></li>
+    <li><a href="vllm-api-key.html">Security, Observability, and Production Best Practices</a></li>
   </ul>
 </nav>
 </div>
@@ -145,8 +145,16 @@
   registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
   --model RedHatAI/granite-3.1-8b-instruct \
   --max-model-len 16384 \
-  --api-key my-secret-token</code></pre>
+  --api-key my-secret-token <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add your own secret or generated api-token key with api-key argument.</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><strong>Key Arguments Used:</strong></p>
