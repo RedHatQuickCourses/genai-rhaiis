@@ -12,7 +12,7 @@ These arguments control how the model loads and consumes GPU memory, directly im
 
 *`--gpu-memory-utilization`:* This determines the exact fraction of the GPU's VRAM allocated to the vLLM engine. It defaults to 0.9 (90%), leaving a small buffer for other CUDA processes. You can cautiously increase this (e.g., to 0.95) on massive GPUs like an H100 to maximize cache, or lower it if you encounter memory errors.
 
-*`--max-model-len`:* This defines the maximum number of tokens (prompt plus completion) the model handles in a single sequence. If left unspecified, it defaults to the model's absolute maximum. *New in 3.4:* Using `--max-model-len auto` allows the server to automatically calculate and adjust this value to perfectly fit your available hardware, drastically simplifying deployment and preventing out-of-memory crashes.
+*`--max-model-len`:* This defines the maximum number of tokens (prompt plus completion) the model handles in a single sequence. If left unspecified, it defaults to the model's absolute maximum. *New in 3.4:* Using *`--max-model-len auto`* allows the server to automatically calculate and adjust this value to perfectly fit your available hardware, drastically simplifying deployment and preventing out-of-memory crashes.
 
 *`--max-num-batched-tokens` & `--max-num-seqs`:* These arguments manage concurrent user traffic. `--max-num-seqs` sets a hard cap on concurrent requests to prevent resource contention during traffic spikes. `--max-num-batched-tokens` limits the maximum batch size of tokens processed per step.
 

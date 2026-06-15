@@ -14,30 +14,30 @@ To hit those strict Service Level Objectives (SLOs) and keep our compute costs f
 
 An untuned model will reserve massive chunks of GPU memory and just sit on it. RHAII utilizes PagedAttention to virtualize the Key-Value (KV) cache for each request, solving memory fragmentation. It also uses Continuous Batching, meaning it processes incoming requests immediately rather than waiting for a full batch to form.  
 
-The Reality Check: This directly increases token throughput, allowing us to serve more users simultaneously without buying more GPUs, driving down our cost-per-token.  
+Business value: This directly increases token throughput, allowing us to serve more users simultaneously without buying more GPUs, driving down our cost-per-token.  
 
 === 2. Hardware Portability (Breaking Vendor Lock-in)
 We aren't always going to have access to top-tier NVIDIA silicon. Because RHAII is delivered as a portable container, it runs across a massive range of hardware. We can deploy on NVIDIA (Turing to Blackwell), AMD (Instinct accelerators), Intel Gaudi, or even run native CPU inference using Intel Xeon and AMD EPYC processors. 
 
-The Reality Check: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.  
+Business value: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.  
 
 
 === 3. Enterprise Security (Surviving InfoSec)
 
 You cannot run sensitive corporate data through a public API. RHAII packages language models into OCI-compliant model containers (modelcars), meaning we can distribute them using the exact same container registry infrastructure we already trust.  
 
-The Reality Check: This solves the air-gapped compliance problem. We can serve these models entirely offline in disconnected environments, ensuring we stay strictly compliant with industry regulations.  
+Business value: This solves the air-gapped compliance problem. We can serve these models entirely offline in disconnected environments, ensuring we stay strictly compliant with industry regulations.  
 
 === 4. Model Compression (Shrinking the Footprint)
 Sometimes the business demands a model that physically will not fit on our available hardware. RHAII integrates with the Red Hat AI Model Optimization Toolkit to deploy compressed models. Using Quantization, we can convert massive model weights into lower-precision formats (like INT8 or FP8) to drastically reduce memory usage.
 
-The Reality Check: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.  
+Business value: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.  
 
 === 5. Observability (Proving Our SLOs)
 
 When the developers complain that "the AI is slow," we need data to push back. The platform automatically exposes Prometheus metrics tracking critical inference data, including time-to-first-token (TTFT), time-per-output-token (TPOT), and GPU KV cache utilization.  
 
-The Reality Check: This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.  
+Business value: This gives us the exact visibility required to guarantee our SLOs and prove to leadership that our GenAI applications are performant.  
 
 
 == The "Rapid Validation" Journey

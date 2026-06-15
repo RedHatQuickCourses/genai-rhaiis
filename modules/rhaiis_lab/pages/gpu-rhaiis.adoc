@@ -21,7 +21,7 @@ Inference fails for one primary reason: *Out of Memory (OOM)*. A common mistake 
 
 To size a standalone inference node correctly and avoid the OOM trap, you must calculate the Total VRAM using this equation:
 
-**Total VRAM} = (\text{Weights} \times 1.2) + \text{KV Cache}**
+**Total VRAM} = ({Weights} \times 1.2) + {KV Cache}**
 
  * *Part 1: The Static Cost (Model Weights & Overhead):*: This is the baseline tax just to load the model onto the GPU. For standard 16-bit models (FP16 or BF16), each parameter requires roughly 2 bytes of VRAM. For example, an 8-billion parameter model needs 16 GB of VRAM for the weights alone, plus about 20% overhead for CUDA kernels and system libraries, bringing the static footprint to ~19.2 GB.  
 
@@ -38,6 +38,15 @@ With *Red Hat AI Inference 3.4*, this process is vastly simplified with the intr
 With Red Hat AI Inference 3.4, this process is vastly simplified. We now have the --max-model-len auto feature. Instead of doing exact KV cache math by hand, passing this argument tells the server to automatically calculate and adjust the model's maximum context length so it fits perfectly within the available leftover GPU memory.
 
 *Business Value:* Automatic context sizing acts as a safety net that smooths out deployment friction. It prevents frustrating Out-of-Memory crashes during launches and ensures that the server automatically maximizes 100% of the available VRAM without manual guesswork.
+
+[NOTE]
+====
+
+When the Red Hat AI Inference server boots up, it loads the static model weights and then claims the rest of the available VRAM (based on your --gpu-memory-utilization setting) to create a giant, shared "KV Cache Pool". +
+
+Concurrency is determined by how many active tokens can physically fit inside that shared pool at the same time. Here is how the math plays out in production: The Physical Limit: Let's say your leftover VRAM creates a KV Cache pool large enough to hold exactly 40,000 tokens. The Concurrency Math: If you set --max-model-len 8000 (meaning no single user can exceed 8,000 tokens), your concurrency limit is entirely dependent on user behavior. If users write massive prompts and max out their 8K limits, the engine can only handle 5 concurrent users (40,000 / 8,000 = 5). If users are just sending quick chatbot queries that only consume 1,000 tokens each, the engine can handle 40 concurrent users (40,000 / 1,000 = 40).
+
+====
 
 === 4. Maximizing Efficiency for Massive Models
 

@@ -26,8 +26,9 @@ $ podman run --rm -it --name rhaii-server \
   registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
   --model RedHatAI/granite-3.1-8b-instruct \
   --max-model-len 16384 \
-  --api-key my-secret-token
+  --api-key my-secret-token <1>
 ----
+<1> Add your own secret or generated api-token key with api-key argument. 
 
 *Key Arguments Used:*
 

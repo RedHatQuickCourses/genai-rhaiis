@@ -3,5 +3,5 @@
 ** xref:gpu-rhaiis.adoc[]
 ** xref:vllm-adv.adoc[]
 ** xref:rhaiis_lab.adoc[]
-** xref:vllm-api-key.adoc[Secure Models:]
+** xref:vllm-api-key.adoc[]
 ** xref:arcade.adoc[]
