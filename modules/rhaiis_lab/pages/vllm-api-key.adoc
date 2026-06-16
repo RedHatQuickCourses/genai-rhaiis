@@ -34,6 +34,26 @@ $ podman run --rm -it --name rhaii-server \
 
 * *`--api-key`:* Enforces the requirement for clients to pass the specified key. *Note:* For production, do not hardcode this in scripts; inject it securely via the `VLLM_API_KEY` environment variable.
 
+---
+
+Arcade Video Walkthrough - Pause to review a Segment. 
+
+++++
+<iframe 
+  src="https://demo.arcade.software/mNVcP71saT5lCxZSHub7?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%" 
+  height="600px" 
+  frameborder="0" 
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+++++
+
+---
+
 *Example: Sending an authenticated client request*
 
 [source,bash]

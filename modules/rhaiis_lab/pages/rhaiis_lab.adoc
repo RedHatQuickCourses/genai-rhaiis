@@ -45,9 +45,9 @@ Create a local directory to cache the downloaded model. This saves time on subse
 mkdir -p $HOME/rhaiis-cache
 ----
 
-=== 2. Run the RHAIIS Container
+=== 2. Run the RHAII Container
 
-This is the core of our lab. We're going to launch the RHAIIS container image and tell it to serve the `ibm-granite/granite-3.3-2b-instruct` model.
+This is the core of our lab. We're going to launch the RHAII container image and tell it to serve the `ibm-granite/granite-3.3-2b-instruct` model.
 
 ====
 
@@ -58,7 +58,7 @@ This command might look a bit complex, but let's break down the important parts:
   * *`--shm-size=4GB -p 8000:8000`:* This allocates shared memory and maps the container's port 8000 to the host's port 8000, so we can access the API.
   * *`--env "HUGGING_FACE_HUB_TOKEN=$HFTOKEN"`:* We're passing our Hugging Face token into the container.
   * *`-v $HOME/rhaiis-cache:/opt/app-root/src/.cache`:* This mounts our local cache directory, so the model only needs to be downloaded once.
-  * *`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914`:* This is the specific RHAIIS container image we're using.
+  * *`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914`:* This is the specific RHAII container image we're using.
   * *`--model ibm-granite/granite-3.3-2b-instruct`:* This tells the server which model to download and serve.
 
 ====
@@ -100,11 +100,25 @@ nvtop
 
 . Keep an eye on the Memory-Usage box. It will show you how much of the total available VRAM is being used as the model loads its weights and initializes the KV Cache, eventually consuming most of the GPU's memory. This initial usage represents the baseline VRAM consumption for the model with default settings.
 
-.nvtop command status
-image::nvtop.png[Nvidia GPU Status, 480]
+---
 
+Arcade Video Walkthrough - Pause to review a Segment. 
 
+++++
+<iframe 
+  src="https://demo.arcade.software/ZROoS9bYRFT80X8CIeNL?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%" 
+  height="600px" 
+  frameborder="0" 
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+++++
 
+---
 
 
 === 4. Verify the Deployment
@@ -112,7 +126,7 @@ image::nvtop.png[Nvidia GPU Status, 480]
 Once you see logs indicating "Starting vLLM server on http://0.0.0.0:8000", the server is ready.
 
 . In ** Terminal 2**, stop the `nvtop` process by pressing CTRL-C.
-* Do not close the terminal or end the process where the RHAIIS container is running.
+* Do not close the terminal or end the process where the RHAII container is running.
 
 . In ** Terminal 2**, use `curl` to send a test prompt to the server's completions endpoint.
 +
@@ -160,7 +174,7 @@ The other command available in this lab is the `nvtop` command. I like this comm
 
 The `--max-model-len` argument controls the maximum number of tokens (input prompt + generated output) a request can handle. A larger context length requires more VRAM. Let's find the sweet spot for our GPU.
 
-. Stop the running RHAIIS container by pressing `Ctrl+C` in its terminal.
+. Stop the running RHAII container by pressing `Ctrl+C` in its terminal.
 
 . Relaunch the server, this time adding the `--max-model-len` argument. Let's start with a value of `8,000`.
 +
@@ -184,7 +198,7 @@ podman run --rm -it --name rhaii-server \
 
 Once the server is running, check your `nvidia-smi`, nvtop watch windows. You should see a noticeable decrease in VRAM usage, but you don't.
 
-In reality,  what happens in this case is that the inference engine does limit the model's max context length to 8K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting. 
+In reality,  what happens in this case is that the inference engine does limit the model's max context length to 8K, however, the RHAII (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting. 
 
 Let's reduce this memory setting next to see how this affects GPU memory consumption. 
 
@@ -216,10 +230,32 @@ podman run --rm -it --name rhaii-server \
 . Observe the change in memory allocation in `nvidia-smi`. The amount of memory reserved by the server will now be lower. This is a key parameter for running in shared environments.
 
 '''
+---
+
+Arcade Video Walkthrough - Pause to review a Segment. 
+
+++++
+<iframe 
+  src="https://demo.arcade.software/eUmqr0dRpwc8jSY2QVbH?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%" 
+  height="600px" 
+  frameborder="0" 
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+++++
+
+---
+
+
+
 
 == 5. Deploy an Alternative Model
 
-Switching models with RHAIIS is simple. Let's deploy the `RedHatAI/granite-3.1-8b-instruct` model.
+Switching models with RHAII is simple. Let's deploy the `RedHatAI/granite-3.1-8b-instruct` model.
 
 . Stop the current container with `Ctrl+C`.
 
@@ -254,7 +290,27 @@ curl -X POST http://localhost:8000/v1/completions \
 }' | jq .choices[0].text
 ----
 
-You have now successfully deployed and tested two different validated models, demonstrating the flexibility of the platform.
+
+---
+
+Arcade Video Walkthrough - Pause to review a Segment. 
+
+++++
+<iframe 
+  src="https://demo.arcade.software/Hisn83KTuYuEmc3rNqgn?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%" 
+  height="600px" 
+  frameborder="0" 
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+++++
+
+---
+
 
 '''
 == 6. Troubleshoot the Larger Model
@@ -267,7 +323,7 @@ This crash was a fully expected part of the learning process. Earlier in the cou
 ****
 *Exercise Review: KV Cache Estimation*
 
-An NVIDIA L4 GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* model requires ~19.0 Gi for its weights and system overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (assuming 0.15625 MB per token and 95% GPU usage)?
+An NVIDIA A10G GPU has 24 GB of vRAM. Given that the *RedHatAI/granite-3.1-8b-instruct* model requires ~17.0 Gi for its weights and system overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (assuming 0.15625 MB per token and 95% GPU usage)?
 ****
 
 Traditionally, you would need to calculate this exact number and apply it as a strict argument (`--max-model-len`) to successfully launch the model. 
@@ -299,11 +355,31 @@ By using the `auto` setting, the inference engine secures the largest possible c
 
 ---
 
+Arcade Video Walkthrough - Pause to review a Segment. 
+
+++++
+<iframe 
+  src="https://demo.arcade.software/9XxjzjtpF895ejzDrlb5?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%" 
+  height="600px" 
+  frameborder="0" 
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+++++
+
+---
+
+
 == 7. Lab Summary and Next Steps
 
 Congratulations on completing the core deployment exercises! 
 
 The key takeaways from this lab experience were:
+
 * Gaining practical, hands-on experience deploying the Red Hat AI Inference container (version 3.4.1).
 * Learning how to calculate an AI model's GPU requirements and size your infrastructure.
 * Deploying models, testing API functionality, and monitoring real-time resource consumption.

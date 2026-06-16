@@ -4,4 +4,4 @@
 ** xref:vllm-adv.adoc[]
 ** xref:rhaiis_lab.adoc[]
 ** xref:vllm-api-key.adoc[]
-** xref:arcade.adoc[]
+//** xref:arcade.adoc[]
