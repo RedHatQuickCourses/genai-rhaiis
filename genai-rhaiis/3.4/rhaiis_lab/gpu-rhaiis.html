@@ -138,6 +138,7 @@
 <div class="paragraph">
 <p><strong>Business Value:</strong> Standardizing on the right model architecture guarantees predictable performance and ensures you only pay the compute cost necessary for the business task, maximizing your Hardware ROI.</p>
 </div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="_2_the_hardware_math_sizing_the_model"><a class="anchor" href="#_2_the_hardware_math_sizing_the_model"></a>2. The Hardware Math: Sizing the Model</h3>
@@ -162,6 +163,23 @@
 </div>
 <div class="paragraph">
 <p><strong>The OOM Trap:</strong> Let&#8217;s say you deploy a Granite-8B model that advertises a 128k maximum context window. If you deploy it with default settings, the engine will try to reserve up to ~20 GB of VRAM just for the KV cache. Add that to the 19.2 GB static footprint, this will instantly crash a 24GB NVIDIA A10G GPU.</p>
+</div>
+<div class="sect3">
+<h4 id="_dont_forget_the_host_cpu_ram_and_storage_bottlenecks"><a class="anchor" href="#_dont_forget_the_host_cpu_ram_and_storage_bottlenecks"></a>Don&#8217;t Forget the Host: CPU RAM and Storage Bottlenecks</h4>
+<div class="paragraph">
+<p>While calculating GPU VRAM is key, we can&#8217;t ignore the host machine&#8217;s physical hardware constraints.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>System RAM:</strong> Before a model can be transferred to the GPU, its weights must first be loaded into the host server&#8217;s CPU memory. For example, if you are deploying a model that requires 40 GB of VRAM, your host machine must also have at least 40 GB of available system RAM just to stage those weights. If the system lacks sufficient memory, it will begin heavily swapping to disk, slowing the deployment to a crawl or causing the container to crash.</p>
+</li>
+<li>
+<p><strong>Storage Speed:</strong> AI models are massive files. The documentation warns that loading gigabytes of weights from shared network storage (such as NFS) can cause the server to hang, freeze, or time out due to slow transfer speeds and latency. To ensure reliable, high-speed model loading, platform engineers should provision fast local disks (such as NVMe drives) and dedicate them to the container&#8217;s model cache directory.</p>
+</li>
+</ul>
+</div>
+<hr>
 </div>
 </div>
 <div class="sect2">
@@ -195,6 +213,7 @@
 </tr>
 </table>
 </div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="_4_maximizing_efficiency_for_massive_models"><a class="anchor" href="#_4_maximizing_efficiency_for_massive_models"></a>4. Maximizing Efficiency for Massive Models</h3>
