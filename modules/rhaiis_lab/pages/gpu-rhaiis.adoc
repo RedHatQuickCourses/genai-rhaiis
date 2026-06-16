@@ -15,6 +15,8 @@ To prevent wasting expensive GPU resources, platform engineers must first evalua
 
 *Business Value:* Standardizing on the right model architecture guarantees predictable performance and ensures you only pay the compute cost necessary for the business task, maximizing your Hardware ROI. 
 
+---
+
 === 2. The Hardware Math: Sizing the Model
 
 Inference fails for one primary reason: *Out of Memory (OOM)*. A common mistake is looking at a model's file size on disk and assuming it will fit within your GPU's Video RAM (VRAM). l
@@ -28,6 +30,15 @@ To size a standalone inference node correctly and avoid the OOM trap, you must c
  * *Part 2: The Dynamic Cost (KV Cache):* The Key-Value (KV) Cache stores the conversational context and is the most volatile consumer of vRAM memory. Its size grows dynamically based on the context length (how much history the model remembers) and the batch size (how many concurrent users we serve).  
  
 *The OOM Trap:* Let's say you deploy a Granite-8B model that advertises a 128k maximum context window. If you deploy it with default settings, the engine will try to reserve up to ~20 GB of VRAM just for the KV cache. Add that to the 19.2 GB static footprint, this will instantly crash a 24GB NVIDIA A10G GPU.
+
+==== Don't Forget the Host: CPU RAM and Storage Bottlenecks
+
+While calculating GPU VRAM is key, we can't ignore the host machine's physical hardware constraints. 
+
+* *System RAM:* Before a model can be transferred to the GPU, its weights must first be loaded into the host server's CPU memory. For example, if you are deploying a model that requires 40 GB of VRAM, your host machine must also have at least 40 GB of available system RAM just to stage those weights. If the system lacks sufficient memory, it will begin heavily swapping to disk, slowing the deployment to a crawl or causing the container to crash.
+* *Storage Speed:* AI models are massive files. The documentation warns that loading gigabytes of weights from shared network storage (such as NFS) can cause the server to hang, freeze, or time out due to slow transfer speeds and latency. To ensure reliable, high-speed model loading, platform engineers should provision fast local disks (such as NVMe drives) and dedicate them to the container's model cache directory.
+
+---
 
 === 3. Smoothing the Sizing Decisions (New in 3.4)
 
@@ -47,6 +58,8 @@ When the Red Hat AI Inference server boots up, it loads the static model weights
 Concurrency is determined by how many active tokens can physically fit inside that shared pool at the same time. Here is how the math plays out in production: The Physical Limit: Let's say your leftover VRAM creates a KV Cache pool large enough to hold exactly 40,000 tokens. The Concurrency Math: If you set --max-model-len 8000 (meaning no single user can exceed 8,000 tokens), your concurrency limit is entirely dependent on user behavior. If users write massive prompts and max out their 8K limits, the engine can only handle 5 concurrent users (40,000 / 8,000 = 5). If users are just sending quick chatbot queries that only consume 1,000 tokens each, the engine can handle 40 concurrent users (40,000 / 1,000 = 40).
 
 ====
+
+---
 
 === 4. Maximizing Efficiency for Massive Models
 

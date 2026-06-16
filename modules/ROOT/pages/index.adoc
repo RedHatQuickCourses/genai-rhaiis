@@ -83,3 +83,12 @@ Here is an example showing how to request the demo environment and stop the runn
   muted>
 </iframe>
 ++++
+
+---
+
+[CAUTION]
+====
+**AI-Assisted Content Disclaimer:** Please note that artificial intelligence was utilized in the creation of lab content within this QuickCourse. As with any AI-assisted material, there is a possibility of minor errors. Additionally, as Red Hat AI Inference technologies rapidly evolve, there may be alternative or more optimized ways to configure certain components. 
+
+However, rest assured that the specific approaches, steps, and architecture outlined in this course have been double-checked and verified by our team as a proven path to Model Inference with Red Hat AI Inference. 
+====

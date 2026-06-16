@@ -49,8 +49,6 @@ mkdir -p $HOME/rhaiis-cache
 
 This is the core of our lab. We're going to launch the RHAII container image and tell it to serve the `ibm-granite/granite-3.3-2b-instruct` model.
 
-====
-
 This command might look a bit complex, but let's break down the important parts:
 
   * *`--device nvidia.com/gpu=all`:* This gives the container access to all available GPUs.
@@ -61,7 +59,6 @@ This command might look a bit complex, but let's break down the important parts:
   * *`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914`:* This is the specific RHAII container image we're using.
   * *`--model ibm-granite/granite-3.3-2b-instruct`:* This tells the server which model to download and serve.
 
-====
 
 
 In **Terminal 1**, copy and paste the following command and press Enter. This will take some time as the model is downloaded and loaded onto the GPU.

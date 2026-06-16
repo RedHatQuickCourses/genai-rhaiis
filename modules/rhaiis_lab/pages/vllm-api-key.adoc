@@ -141,12 +141,38 @@ $ systemctl enable --now container-rhaii-server.service
 
 Your LLM is now a fully integrated, managed infrastructure component.
 
+
 === 5. Air-Gapped Deployments: The Modelcar Advantage
 
 [NOTE]
-.Production Reality Check
+.Production Deployments
 Throughout these labs, we utilized a Hugging Face token to pull model weights directly from the public internet. However, you cannot run sensitive corporate data through a public API. In strict enterprise environments, internet-connected downloads are forbidden.
 
 To solve the air-gapped compliance problem, RHAII packages language models into OCI-compliant model containers (known as *modelcars*). This means we can distribute massive LLM weights using the exact same internal container registry infrastructure (like Red Hat Quay or Artifactory) that we already trust for standard application images. 
 
 Instead of configuring `--env "HUGGING_FACE_HUB_TOKEN..."`, your production `podman run` command simply points the `--model` argument directly to your internal, authenticated registry, ensuring your AI infrastructure remains entirely offline and strictly compliant with industry regulations.
+
+[WARNING]
+.Registry Storage Capacity Warning
+While modelcars solve compliance and network constraints, they introduce a major storage consideration for our infrastructure teams. Unlike standard application containers that measure in megabytes, OCI model container images are massive. Depending on the model's parameter count and whether it uses quantization, a single modelcar can range from 10 GB to well over 100 GB. Pushing several of these to an internal registry (like Red Hat Quay) requires significant planned storage capacity. You must warn your storage and registry administrators in advance to provision enough disk space to handle these artifacts.
+
+
+=== 6. Gathering Diagnostic Data
+
+Even with careful sizing and tuning, we will inevitably encounter edge cases, unexpected container crashes, or underlying hardware bugs. In a production enterprise environment, our safety net is vendor support. However, opening a ticket simply stating "the engine crashed" will severely delay our resolution time.
+
+To streamline troubleshooting, the vLLM engine includes a built-in diagnostic tool. The `vllm collect-env` command automatically queries the environment and outputs critical system details, Python dependencies, and exact hardware configurations (including CUDA driver versions, GPU topologies, and TPU details).
+
+*Example: Running the diagnostic script*::
+You use this command after the crash. It acts as a probe that you drop into the exact same environment the crashed container was using, taking a snapshot of the hardware and software dependencies to hand over to the support team.
+
+[source,bash]
+----
+$ podman run --rm -it \
+  --device nvidia.com/gpu=all \
+  registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914 \
+  vllm collect-env
+----
+
+*Why it matters:* Whenever a critical AI workload fails or hangs unexpectedly, run this command and attach the output bundle to your Red Hat Support ticket. Providing this exact hardware and dependency snapshot upfront allows Red Hat engineers to bypass basic triage and immediately begin root-cause analysis, significantly reducing our downtime.
+

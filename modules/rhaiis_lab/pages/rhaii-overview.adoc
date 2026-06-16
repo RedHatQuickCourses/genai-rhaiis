@@ -19,7 +19,10 @@ Business value: This directly increases token throughput, allowing us to serve m
 === 2. Hardware Portability (Breaking Vendor Lock-in)
 We aren't always going to have access to top-tier NVIDIA silicon. Because RHAII is delivered as a portable container, it runs across a massive range of hardware. We can deploy on NVIDIA (Turing to Blackwell), AMD (Instinct accelerators), Intel Gaudi, or even run native CPU inference using Intel Xeon and AMD EPYC processors. 
 
+
 Business value: If a business unit just needs a small model for a basic Retrieval-Augmented Generation (RAG) task, we can run it cost-effectively on our existing CPU fleets instead of fighting over expensive GPUs.  
+
+* Beyond immediate cost savings, repurposing existing hardware directly supports corporate sustainability initiatives by avoiding the manufacturing and supply-chain carbon footprint associated with procuring net-new GPU servers.
 
 
 === 3. Enterprise Security (Surviving InfoSec)
@@ -32,6 +35,8 @@ Business value: This solves the air-gapped compliance problem. We can serve thes
 Sometimes the business demands a model that physically will not fit on our available hardware. RHAII integrates with the Red Hat AI Model Optimization Toolkit to deploy compressed models. Using Quantization, we can convert massive model weights into lower-precision formats (like INT8 or FP8) to drastically reduce memory usage.
 
 Business value: Compression is how we fit highly capable, massive models onto smaller, cheaper GPUs, drastically lowering our infrastructure footprint.  
+
+* By operating on smaller GPUs or requiring fewer of them entirely, organizations significantly reduce operational data center power consumption and intensive cooling requirements, directly aligning high-performance AI deployments with enterprise Environmental, Social, and Governance (ESG) goals.
 
 === 5. Observability (Proving Our SLOs)
 
