@@ -65,9 +65,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="vllm-api-key.html">Security, Observability, and Production Best Practices</a>
   </li>
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="arcade.html">Arcade Interactive Lab Walkthrough</a>
-  </li>
 </ul>
   </li>
 </ul>
@@ -180,9 +177,9 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_2_run_the_rhaiis_container"><a class="anchor" href="#_2_run_the_rhaiis_container"></a>2. Run the RHAIIS Container</h3>
+<h3 id="_2_run_the_rhaii_container"><a class="anchor" href="#_2_run_the_rhaii_container"></a>2. Run the RHAII Container</h3>
 <div class="paragraph">
-<p>This is the core of our lab. We&#8217;re going to launch the RHAIIS container image and tell it to serve the <code>ibm-granite/granite-3.3-2b-instruct</code> model.</p>
+<p>This is the core of our lab. We&#8217;re going to launch the RHAII container image and tell it to serve the <code>ibm-granite/granite-3.3-2b-instruct</code> model.</p>
 </div>
 <div class="exampleblock">
 <div class="content">
@@ -207,7 +204,7 @@
 <p><strong><code>-v $HOME/rhaiis-cache:/opt/app-root/src/.cache</code>:</strong> This mounts our local cache directory, so the model only needs to be downloaded once.</p>
 </li>
 <li>
-<p><strong><code>registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914</code>:</strong> This is the specific RHAIIS container image we&#8217;re using.</p>
+<p><strong><code>registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1-1780356914</code>:</strong> This is the specific RHAII container image we&#8217;re using.</p>
 </li>
 <li>
 <p><strong><code>--model ibm-granite/granite-3.3-2b-instruct</code>:</strong> This tells the server which model to download and serve.</p>
@@ -266,12 +263,22 @@
 </li>
 </ol>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/nvtop.png" alt="Nvidia GPU Status" width="480">
+<hr>
+<div class="paragraph">
+<p>Arcade Video Walkthrough - Pause to review a Segment.</p>
 </div>
-<div class="title">Figure 2. nvtop command status</div>
-</div>
+<iframe
+  src="https://demo.arcade.software/ZROoS9bYRFT80X8CIeNL?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%"
+  height="600px"
+  frameborder="0"
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="_4_verify_the_deployment"><a class="anchor" href="#_4_verify_the_deployment"></a>4. Verify the Deployment</h3>
@@ -285,7 +292,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Do not close the terminal or end the process where the RHAIIS container is running.</p>
+<p>Do not close the terminal or end the process where the RHAII container is running.</p>
 </li>
 </ul>
 </div>
@@ -357,7 +364,7 @@
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Stop the running RHAIIS container by pressing <code>Ctrl+C</code> in its terminal.</p>
+<p>Stop the running RHAII container by pressing <code>Ctrl+C</code> in its terminal.</p>
 </li>
 <li>
 <p>Relaunch the server, this time adding the <code>--max-model-len</code> argument. Let&#8217;s start with a value of <code>8,000</code>.</p>
@@ -392,7 +399,7 @@
 <p>Once the server is running, check your <code>nvidia-smi</code>, nvtop watch windows. You should see a noticeable decrease in VRAM usage, but you don&#8217;t.</p>
 </div>
 <div class="paragraph">
-<p>In reality,  what happens in this case is that the inference engine does limit the model&#8217;s max context length to 8K, however, the RHAIIS (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting.</p>
+<p>In reality,  what happens in this case is that the inference engine does limit the model&#8217;s max context length to 8K, however, the RHAII (vLLM) engine still consumed all the available GPU memory it could based on the .90 (90%) utilization default setting.</p>
 </div>
 <div class="paragraph">
 <p>Let&#8217;s reduce this memory setting next to see how this affects GPU memory consumption.</p>
@@ -441,6 +448,22 @@
 </ol>
 </div>
 <hr>
+<hr>
+<div class="paragraph">
+<p>Arcade Video Walkthrough - Pause to review a Segment.</p>
+</div>
+<iframe
+  src="https://demo.arcade.software/eUmqr0dRpwc8jSY2QVbH?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%"
+  height="600px"
+  frameborder="0"
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+<hr>
 </div>
 </div>
 </div>
@@ -448,7 +471,7 @@
 <h2 id="_5_deploy_an_alternative_model"><a class="anchor" href="#_5_deploy_an_alternative_model"></a>5. Deploy an Alternative Model</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Switching models with RHAIIS is simple. Let&#8217;s deploy the <code>RedHatAI/granite-3.1-8b-instruct</code> model.</p>
+<p>Switching models with RHAII is simple. Let&#8217;s deploy the <code>RedHatAI/granite-3.1-8b-instruct</code> model.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -497,9 +520,22 @@
 </li>
 </ol>
 </div>
+<hr>
 <div class="paragraph">
-<p>You have now successfully deployed and tested two different validated models, demonstrating the flexibility of the platform.</p>
+<p>Arcade Video Walkthrough - Pause to review a Segment.</p>
 </div>
+<iframe
+  src="https://demo.arcade.software/Hisn83KTuYuEmc3rNqgn?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%"
+  height="600px"
+  frameborder="0"
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+<hr>
 <hr>
 </div>
 </div>
@@ -518,7 +554,7 @@
 <p><strong>Exercise Review: KV Cache Estimation</strong></p>
 </div>
 <div class="paragraph">
-<p>An NVIDIA L4 GPU has 24 GB of vRAM. Given that the <strong>RedHatAI/granite-3.1-8b-instruct</strong> model requires ~19.0 Gi for its weights and system overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (assuming 0.15625 MB per token and 95% GPU usage)?</p>
+<p>An NVIDIA A10G GPU has 24 GB of vRAM. Given that the <strong>RedHatAI/granite-3.1-8b-instruct</strong> model requires ~17.0 Gi for its weights and system overhead, what is the maximum context length (in tokens) you could configure for the KV Cache to ensure the entire workload fits on the device (assuming 0.15625 MB per token and 95% GPU usage)?</p>
 </div>
 </div>
 </div>
@@ -554,6 +590,21 @@
 <p>By using the <code>auto</code> setting, the inference engine secures the largest possible context window for individual queries. Behind the scenes, PagedAttention and concurrency limits (such as <code>--max-num-seqs</code>) work seamlessly together to distribute memory fairly and queue excess traffic during concurrent demand spikes.</p>
 </div>
 <hr>
+<div class="paragraph">
+<p>Arcade Video Walkthrough - Pause to review a Segment.</p>
+</div>
+<iframe
+  src="https://demo.arcade.software/9XxjzjtpF895ejzDrlb5?embed&embed_mobile=inline&embed_desktop=inline&show_copy_link=true"
+  width="100%"
+  height="600px"
+  frameborder="0"
+  allowfullscreen
+  webkitallowfullscreen
+  mozallowfullscreen
+  allow="clipboard-write"
+  muted>
+</iframe>
+<hr>
 </div>
 </div>
 <div class="sect1">
@@ -563,11 +614,23 @@
 <p>Congratulations on completing the core deployment exercises!</p>
 </div>
 <div class="paragraph">
-<p>The key takeaways from this lab experience were:
-* Gaining practical, hands-on experience deploying the Red Hat AI Inference container (version 3.4.1).
-* Learning how to calculate an AI model&#8217;s GPU requirements and size your infrastructure.
-* Deploying models, testing API functionality, and monitoring real-time resource consumption.
-* Tuning server performance based on available vRAM to prevent system crashes and optimize output.</p>
+<p>The key takeaways from this lab experience were:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gaining practical, hands-on experience deploying the Red Hat AI Inference container (version 3.4.1).</p>
+</li>
+<li>
+<p>Learning how to calculate an AI model&#8217;s GPU requirements and size your infrastructure.</p>
+</li>
+<li>
+<p>Deploying models, testing API functionality, and monitoring real-time resource consumption.</p>
+</li>
+<li>
+<p>Tuning server performance based on available vRAM to prevent system crashes and optimize output.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p><strong>Up Next:</strong> Now that we have the fundamentals of serving and sizing under our belt, we will transition from basic deployment to production readiness. In the next section, we will briefly explore the operational side of AI: security, observability, and the use of Modelcars.</p>
