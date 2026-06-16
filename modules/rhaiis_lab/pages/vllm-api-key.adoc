@@ -76,7 +76,7 @@ When testing your secure deployment, the server will return standard HTTP status
 
 * *200 OK:* The request was successful, and the model output is returned.
 * *401 Unauthorized:* The request failed because the `Authorization` header (and the API key) was completely missing.
-* *403 Forbidden:* The request failed because the API key provided did not match the key configured on the server].
+* *403 Forbidden:* The request failed because the API key provided did not match the key configured on the server.
 
 === 2. Enforcing TLS Encryption
 

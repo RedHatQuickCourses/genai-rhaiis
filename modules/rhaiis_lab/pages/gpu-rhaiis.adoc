@@ -21,7 +21,7 @@ Inference fails for one primary reason: *Out of Memory (OOM)*. A common mistake 
 
 To size a standalone inference node correctly and avoid the OOM trap, you must calculate the Total VRAM using this equation:
 
-**Total VRAM} = ({Weights} \times 1.2) + {KV Cache}**
+**Total VRAM = (Weights * 1.2) + KV Cache**
 
  * *Part 1: The Static Cost (Model Weights & Overhead):*: This is the baseline tax just to load the model onto the GPU. For standard 16-bit models (FP16 or BF16), each parameter requires roughly 2 bytes of VRAM. For example, an 8-billion parameter model needs 16 GB of VRAM for the weights alone, plus about 20% overhead for CUDA kernels and system libraries, bringing the static footprint to ~19.2 GB.  
 
